@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<Extern href="stdidcmd.h" />
+	<Extern href="vsshlids.h" />
+	<!--<Extern href="msobtnid.h" xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" />-->
+	<Extern href="guids.h" />
+
+	<Commands package="guidTimeLapseContextMenuPkg">
+		<Groups>
+			<Group guid="guidTimeLapseContextMenuCmdSet" id="ResultListGroup" priority="0x301">
+				<Parent guid="WorkItemTrackingGuid" id="ResultList" />
+			</Group>
+			<Group guid="guidTimeLapseContextMenuCmdSet" id="WorkItemGroup" priority="0x201">
+				<Parent guid="WorkItemTrackingGuid" id="WorkItem" />
+			</Group>
+			<Group guid="guidTimeLapseContextMenuCmdSet" id="TBWorkItemGroup" priority="0x200">
+				<Parent guid="WorkItemTrackingGuid" id="TBWorkItemTracking" />
+			</Group>
+			<Group guid="guidTimeLapseContextMenuCmdSet" id="EditGroup" priority="0x100">
+				<Parent guid="EditGuid" id="Edit" />
+			</Group>
+		</Groups>
+
+		<Buttons>
+			<Button guid="guidTimeLapseContextMenuCmdSet" id="cmdidWorkItemCompare" priority="0x0101" type="Button">
+				<Parent guid="guidTimeLapseContextMenuCmdSet" id="EditGroup" />
+				<Icon guid="guidImages" id="bmpPic" />
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<CommandFlag>DefaultInvisible</CommandFlag>
+				<CommandFlag>DefaultDisabled</CommandFlag>
+				<Strings>
+					<ButtonText>View relations</ButtonText>
+				</Strings>
+			</Button>
+
+			<Button guid="guidTimeLapseContextMenuCmdSet" id="cmdidWorkItemCompare" priority="0x0201" type="Button">
+				<Parent guid="guidTimeLapseContextMenuCmdSet" id="ResultListGroup" />
+				<Icon guid="guidImages" id="bmpPic" />
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<CommandFlag>DefaultInvisible</CommandFlag>
+				<CommandFlag>DefaultDisabled</CommandFlag>
+				<Strings>
+					<ButtonText>View relations</ButtonText>
+				</Strings>
+			</Button>
+
+			<Button guid="guidTimeLapseContextMenuCmdSet" id="cmdidWorkItemCompare" priority="0x0201" type="Button">
+				<Parent guid="guidTimeLapseContextMenuCmdSet" id="WorkItemGroup" />
+				<Icon guid="guidImages" id="bmpPic" />
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<CommandFlag>DefaultInvisible</CommandFlag>
+				<CommandFlag>DefaultDisabled</CommandFlag>
+				<Strings>
+					<ButtonText>View relations</ButtonText>
+				</Strings>
+			</Button>
+
+			<Button guid="guidTimeLapseContextMenuCmdSet" id="cmdidWorkItemCompare" priority="0x0400" type="Button">
+				<Parent guid="guidTimeLapseContextMenuCmdSet" id="TBWorkItemGroup" />
+				<Icon guid="guidImages" id="bmpPic" />
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<CommandFlag>DefaultInvisible</CommandFlag>
+				<CommandFlag>DefaultDisabled</CommandFlag>
+				<Strings>
+					<ButtonText>View relations</ButtonText>
+				</Strings>
+			</Button>
+		</Buttons>
+		<Bitmaps>
+			<Bitmap guid="guidImages" href="Resources\Graph.png" usedList="bmpPic" />
+		</Bitmaps>
+  </Commands>
+
+	<Symbols>
+		<GuidSymbol name="guidTimeLapseContextMenuPkg" value="{af4a407a-3486-40c5-975d-9dde883ff0b5}" />
+		<GuidSymbol name="guidTimeLapseContextMenuCmdSet" value="{106d7db2-7b92-442f-92d4-96d229406300}">
+			<IDSymbol name="ResultListGroup" value="0x1030" />
+			<IDSymbol name="WorkItemGroup" value="0x1040" />
+			<IDSymbol name="TBWorkItemGroup" value="0x1041" />
+			<IDSymbol name="EditGroup" value="0x1042" />
+			<IDSymbol name="cmdidWorkItemCompare" value="0x0202" />
+		</GuidSymbol>
+		<GuidSymbol name="guidImages" value="{619d558c-1a1b-4516-b710-8ab08731cc5c}">
+			<IDSymbol name="bmpPic" value="1" />
+		</GuidSymbol>
+	</Symbols>
+</CommandTable>
