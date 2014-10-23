@@ -47,13 +47,16 @@ namespace YL.WorkItemViewExt.WorkItemRelations
 			var info = new Dictionary<int, WorkItem>();
 			foreach (var relation in relations)
 			{
-				foreach (var targetId in relation)
+				foreach (var target in relation)
 				{
-					if (_visitedWorkItems.Add(targetId))
+					if (_visitedWorkItems.Add(target.TargetId))
 					{
-						info.Add(targetId, null);
+						info.Add(target.TargetId, null);
 					}
-					part.Links.Add(new GraphLink { SourceId = relation.Key, TargetId = targetId, Category = "Link" });
+					if (target.IsForward)
+					{
+						part.Links.Add(new GraphLink { SourceId = relation.Key, TargetId = target.TargetId, Category = target.LinkType, LinkEndType = target.LinkEndType });
+					}
 				}
 			}
 			_reader.FillInfo(info);

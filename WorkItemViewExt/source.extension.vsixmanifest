@@ -6,6 +6,7 @@
 		<Description xml:space="preserve">Work item view extension</Description>
 		<Icon>Resources\Package.ico</Icon>
 		<PreviewImage>Resources\Package.ico</PreviewImage>
+		<Tags>work item tracking, work item, team foundation server, tfs</Tags>
 	</Metadata>
 	<Installation InstalledByMsi="false">
 		<InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[12.0]" />

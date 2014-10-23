@@ -13,7 +13,7 @@ namespace YL.WorkItemViewExt.WorkItemRelations
 	{
 		private const string dgmlNS = "http://schemas.microsoft.com/vs/2009/dgml";
 
-		internal void GenerateDGML(string saveFilePath, GraphPart part, IEnumerable<string> types)
+		internal void GenerateDGML(string saveFilePath, GraphPart part, IEnumerable<string> nodeTypes, IEnumerable<string> linkTypes)
 		{
 			var rootNode = new XElement(XName.Get("DirectedGraph", dgmlNS),
 					new XAttribute("GraphDirection", "LeftToRight"),
@@ -27,23 +27,26 @@ namespace YL.WorkItemViewExt.WorkItemRelations
 							new XAttribute("Category", item.Category),
 							new XAttribute("SourceLocation", item.SourceLocation))),
 					new XElement(XName.Get("Categories", dgmlNS),
-						types.Select(t => new XElement(XName.Get("Category", dgmlNS), new XAttribute("Id", t)))),
-					GenerateStyles(types));
+						nodeTypes.Select(t => new XElement(XName.Get("Category", dgmlNS), new XAttribute("Id", t))),
+						linkTypes.Select(t => new XElement(XName.Get("Category", dgmlNS), new XAttribute("Id", t)))),
+					GenerateStyles(nodeTypes, linkTypes));
 
 			var linksNode = new XElement(XName.Get("Links", dgmlNS),
 						from item in part.Links
 						select new XElement(XName.Get("Link", dgmlNS), new XAttribute("Source", item.SourceId), new XAttribute("Target", item.TargetId),
-							new XAttribute("Category", item.Category)));
+							new XAttribute("Category", item.Category),
+							new XAttribute("Label", item.LinkEndType)));
 			rootNode.Add(linksNode);
 
 			var document = new XDocument(rootNode);
 			document.Save(saveFilePath);
 		}
 
-		private XElement GenerateStyles(IEnumerable<string> types)
+		private XElement GenerateStyles(IEnumerable<string> nodeTypes, IEnumerable<string> linkTypes)
 		{
 			return new XElement(XName.Get("Styles", dgmlNS),
-				types.Select(t => StyleElement(t, "Node", "Background", GenerateColor(t))));
+				nodeTypes.Select(t => StyleElement(t, "Node", "Background", GenerateNodeColor(t))),
+				linkTypes.Select(t => StyleElement(t, "Link", "Stroke", GenerateLinkColor(t))));
 		}
 
 		private static XElement StyleElement(string category, string targetType, string propertyName, string propertyValue)
@@ -53,7 +56,7 @@ namespace YL.WorkItemViewExt.WorkItemRelations
 				new XElement(XName.Get("Setter", dgmlNS), new XAttribute("Property", propertyName), new XAttribute("Value", propertyValue)));
 		}
 
-		private static string GenerateColor(string type)
+		private static string GenerateNodeColor(string type)
 		{
 			switch (type)
 			{
@@ -71,6 +74,23 @@ namespace YL.WorkItemViewExt.WorkItemRelations
 				case "Code Review Request":
 				case "Code Review Response":
 					return "Gray";
+				default:
+					return string.Empty;
+			}
+		}
+
+		private static string GenerateLinkColor(string type)
+		{
+			switch (type)
+			{
+				case "Microsoft.VSTS.Common.Affects":
+					return "Red";
+				case "System.LinkTypes.Dependency":
+					return "Yellow";
+				case "System.LinkTypes.Hierarchy":
+					return "Green";
+				case "System.LinkTypes.Related":
+					return "Blue";
 				default:
 					return string.Empty;
 			}

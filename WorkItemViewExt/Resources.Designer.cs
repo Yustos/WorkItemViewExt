@@ -59,5 +59,23 @@ namespace YL.WorkItemViewExt {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Collecting work items ({0} nodes, {1} links)....
+        /// </summary>
+        internal static string ProgressMessage {
+            get {
+                return ResourceManager.GetString("ProgressMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Completed items collection ({0} nodes, {1} links)..
+        /// </summary>
+        internal static string SuccessMessage {
+            get {
+                return ResourceManager.GetString("SuccessMessage", resourceCulture);
+            }
+        }
     }
 }

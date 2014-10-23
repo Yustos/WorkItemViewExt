@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace YL.WorkItemViewExt.WorkItemRelations.Entities
 {
-	internal class GraphLink
+	internal struct LinkTarget
 	{
-		public int SourceId { get; set; }
+		public int TargetId;
 
-		public int TargetId { get; set; }
+		public bool IsForward;
 
-		public string Category { get; set; }
+		public string LinkType;
 
-		public string LinkEndType { get; set; }
+		public string LinkEndType;
 	}
 }

@@ -42,6 +42,14 @@ namespace YL.WorkItemViewExt.WorkItemRelations
 				var graphLink = _graph.Links.GetOrCreate(
 					_graph.Nodes.Get(link.SourceId.ToString()),
 					_graph.Nodes.Get(link.TargetId.ToString()));
+				graphLink.Label = link.LinkEndType;
+
+				GraphCategory category;
+				if (_categories.TryGetValue(link.Category, out category))
+				{
+					graphLink.AddCategory(category);
+				}
+
 				_graph.Links.Add(graphLink);
 			}
 		}
