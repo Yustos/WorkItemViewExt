@@ -64,6 +64,18 @@ namespace YL.Timeline.Controls.MainRegion
 				}
 				_records.Add(c);
 				Items.Add(c);
+
+				// Prepare revision paths
+				ControlRecord last = null;
+				foreach (var control in c.RecordControls)
+				{
+					if (last != null)
+					{
+						_adornerLayer.Add(new ControlPath((UIElement)last.Parent, last, control.Value));
+					}
+
+					last = control.Value;
+				}
 			}
 
 			// Prepare links over items
@@ -90,18 +102,6 @@ namespace YL.Timeline.Controls.MainRegion
 			{
 				addControls(control.Key.AddedLinks, control.Value, true);
 				addControls(control.Key.RemovedLinks, control.Value, false);
-			}
-
-			// Prepare revision paths
-			ControlRecord last = null;
-			foreach (var control in controls)
-			{
-				if (last != null)
-				{
-					_adornerLayer.Add(new ControlPath((UIElement)last.Parent, last, control.Value));
-				}
-
-				last = control.Value;
 			}
 		}
 
