@@ -16,8 +16,8 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>YL.WorkItemViewExt</RootNamespace>
     <AssemblyName>YL.WorkItemViewExt</AssemblyName>
-    <SignAssembly>True</SignAssembly>
-    <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\Key.snk</AssemblyOriginatorKeyFile>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -142,21 +142,31 @@
     <Compile Include="Guids.cs" />
     <Compile Include="Helpers\ProgressBar.cs" />
     <Compile Include="Helpers\WorkItemHelper.cs" />
+    <Compile Include="IWorkItemViewExtCommand.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="ViewRelationsCommand.cs" />
+    <Compile Include="WorkItemTimeline\Controls\TimelineModel.cs" />
+    <Compile Include="WorkItemTimeline\Controls\TimelineWrapper.cs" />
+    <Compile Include="WorkItemTimeline\TimelineService.cs" />
+    <Compile Include="WorkItemTimeline\WorkItemTimelineCommand.cs" />
+    <Compile Include="WorkItemViewExtCommands.cs" />
     <Compile Include="WorkItemRelations\Entities\GraphLink.cs" />
     <Compile Include="WorkItemRelations\Entities\GraphNode.cs" />
     <Compile Include="WorkItemRelations\Entities\GraphPart.cs" />
     <Compile Include="WorkItemRelations\Entities\LinkTarget.cs" />
     <Compile Include="WorkItemRelations\GraphRender.cs" />
     <Compile Include="WorkItemRelations\GraphSerializer.cs" />
+    <Compile Include="WorkItemRelations\WorkItemRelationsCommand.cs" />
     <Compile Include="WorkItemRelations\WorkItemTraverser.cs" />
     <Compile Include="WorkItemRelations\WorkItemReader.cs" />
+    <Compile Include="WorkItemTimeline\Controls\ControlTimeline.xaml.cs">
+      <DependentUpon>ControlTimeline.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WorkItemTimeline\Controls\WorkItemTimelinePane.cs" />
     <Compile Include="WorkItemViewExtPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -172,16 +182,17 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\Key.snk">
+      <Link>Key.snk</Link>
+    </None>
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Key.snk" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="Guids.h" />
     <Resource Include="Resources\Graph.png" />
+    <Resource Include="Resources\Timeline.png" />
     <Content Include="Resources\Package.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -193,7 +204,18 @@
       <SubType>Designer</SubType>
     </VSCTCompile>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Page Include="WorkItemTimeline\Controls\ControlTimeline.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Timeline\Timeline.csproj">
+      <Project>{22c839ce-2464-461e-b097-3c59a6611421}</Project>
+      <Name>Timeline</Name>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup>
     <UseCodebase>true</UseCodebase>
   </PropertyGroup>

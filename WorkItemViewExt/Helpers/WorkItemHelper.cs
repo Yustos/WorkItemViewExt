@@ -50,6 +50,7 @@ namespace YL.WorkItemViewExt.Helpers
 
 		private static DocumentService GetDocService(EnvDTE.DTE dte)
 		{
+#warning Избавиться.
 			return dte.GetObject("Microsoft.VisualStudio.TeamFoundation.WorkItemTracking.DocumentService")
 				as DocumentService;
 		}

@@ -1,24 +1,10 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Globalization;
 using System.Runtime.InteropServices;
-using System.ComponentModel.Design;
-using System.Linq;
-using Microsoft.Win32;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
-using YL.WorkItemViewExt.WorkItemRelations;
 using YL.WorkItemViewExt.Helpers;
-using Microsoft.VisualStudio.Progression;
-using Microsoft.VisualStudio.GraphModel;
-using System.IO;
-using YL.WorkItemViewExt.WorkItemRelations.Entities;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Threading;
-using Microsoft.TeamFoundation.WorkItemTracking.Client;
+using YL.WorkItemViewExt.WorkItemTimeline.Controls;
 using System.Collections.Generic;
 
 namespace YL.WorkItemViewExt
@@ -27,9 +13,18 @@ namespace YL.WorkItemViewExt
 	[InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)]
 	[ProvideMenuResource("Menus.ctmenu", 1)]
 	[ProvideAutoLoad("{e13eedef-b531-4afe-9725-28a69fa4f896}")]
+	[ProvideToolWindow(typeof(WorkItemTimelinePane), Style = VsDockStyle.Tabbed, Transient = true)]
 	[Guid(GuidList.guidWorkItemViewExtPkgString)]
 	public sealed class WorkItemViewExtPackage : Package, IOleCommandTarget
 	{
+		private static readonly Dictionary<uint, IWorkItemViewExtCommand> _commands = new Dictionary<uint, IWorkItemViewExtCommand>();
+
+		static WorkItemViewExtPackage()
+		{
+			_commands.Add(WorkItemViewExtCommands.CmdidViewRelations, new WorkItemRelations.WorkItemRelationsCommand());
+			_commands.Add(WorkItemViewExtCommands.CmdidViewTimeline, new WorkItemTimeline.WorkItemTimelineCommand());
+		}
+
 		public WorkItemViewExtPackage()
 		{
 		}
@@ -50,7 +45,8 @@ namespace YL.WorkItemViewExt
 			{
 				return OlecmderrEUnknowngroup;
 			}
-			if (cmdId != ViewRelationsCommand.CmdidViewRelations)
+			IWorkItemViewExtCommand command;
+			if (!_commands.TryGetValue(cmdId, out command))
 			{
 				return OlecmderrEUnknowngroup;
 			}
@@ -63,46 +59,8 @@ namespace YL.WorkItemViewExt
 				return VSConstants.S_OK;
 			}
 
-			var traverser = new WorkItemTraverser(selectedWorkItems);
-			var part = traverser.InitStep();
-
-			var path = Path.Combine(Path.GetTempPath(), "WorkItems.dgml");
-			var existingRender = dte.ItemOperations.IsFileOpen(path);
-			var render = GetRender(dte, part, path,
-				selectedWorkItems[0].Project.WorkItemTypes.Cast<WorkItemType>().Select(t => t.Name),
-				selectedWorkItems[0].Store.WorkItemLinkTypes.Select(l => l.ReferenceName));
-			if (existingRender)
-			{
-				render.Render(part);
-			}
+			command.Execute(this, selectedWorkItems);
 			
-			System.Threading.Tasks.Task.Factory.StartNew(
-				() =>
-				{
-					using (var progress = new ProgressBar(this))
-					{
-						var aggregated = new GraphPart();
-
-						while ((part = traverser.StepDeep()) != null)
-						{
-							aggregated.Nodes.AddRange(part.Nodes);
-							aggregated.Links.AddRange(part.Links);
-							progress.Progress(part.Nodes.Count, part.Links.Count);
-						}
-
-						Application.Current.Dispatcher.Invoke(
-							() =>
-							{
-								using (var scope = render.BeginUpdate())
-								{
-									render.Render(aggregated);
-									render.Group();
-									scope.Complete();
-								}
-							});
-
-					}
-				});
 			return VSConstants.S_OK;
 		}
 
@@ -116,7 +74,7 @@ namespace YL.WorkItemViewExt
 				return OlecmderrEUnknowngroup;
 			}
 
-			if (prgCmds[0].cmdID != ViewRelationsCommand.CmdidViewRelations)
+			if (!_commands.ContainsKey(prgCmds[0].cmdID))
 			{
 				return OlecmderrEUnknowngroup;
 			}
@@ -132,25 +90,6 @@ namespace YL.WorkItemViewExt
 			}
 
 			return VSConstants.S_OK;
-		}
-
-		private GraphRender GetRender(EnvDTE.DTE dte, GraphPart part, string path, IEnumerable<string> nodeTypes, IEnumerable<string> linkTypes)
-		{
-			var serializer = new GraphSerializer();
-			serializer.GenerateDGML(path, part, nodeTypes, linkTypes);
-
-			var window = dte.ItemOperations.OpenFile(path);
-			var automation = window.Object as GraphControlAutomationObject;
-			if (automation == null)
-			{
-				throw new ApplicationException("Missing graph control automation.");
-			}
-
-#warning Suppress error
-			File.Delete(path);
-
-			var graph = automation.Graph;
-			return new GraphRender(graph);
 		}
 	}
 }

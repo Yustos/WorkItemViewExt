@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace YL.WorkItemViewExt
 {
-	public class ViewRelationsCommand
+	public class WorkItemViewExtCommands
 	{
 		public const uint CmdidViewRelations = 0x202;
+		public const uint CmdidViewTimeline = 0x203;
 	}
 }
