@@ -60,7 +60,7 @@ namespace YL.WorkItemViewExt.WorkItemTimeline.Controls
 			_service = service;
 			LoadInfoCommand = new LoaderCommand((id, rev) =>
 				{
-					return _service.GetFields(id, rev);
+					return _service.GetChanges(id, rev);
 				});
 		}
 

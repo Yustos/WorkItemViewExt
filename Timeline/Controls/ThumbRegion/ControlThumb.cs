@@ -41,6 +41,11 @@ namespace YL.Timeline.Controls.ThumbRegion
 
 		protected override void OnRender(DrawingContext drawingContext)
 		{
+			if (ActualWidth < 0 || ActualHeight < 2)
+			{
+				return;
+			}
+
 			drawingContext.DrawRectangle(new LinearGradientBrush(Color.FromRgb(206, 225, 243), Color.FromRgb(231, 240, 250), 90),
 				null,
 				new Rect(0, 1, ActualWidth, ActualHeight - 2));
@@ -60,7 +65,7 @@ namespace YL.Timeline.Controls.ThumbRegion
 			{
 				var h = ActualHeight * kvp.Value / aggregation.Apex;
 				drawingContext.DrawRectangle(Brushes.Green, null,
-					new Rect(kvp.Key + 3, ActualHeight - h + 1, 2, h - 2));
+					new Rect(kvp.Key + 3, ActualHeight - h + 1, 2, Math.Max(1, h - 2)));
 			}
 		}
 

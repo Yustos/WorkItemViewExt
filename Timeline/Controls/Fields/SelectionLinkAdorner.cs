@@ -18,18 +18,13 @@ namespace YL.Timeline.Controls.Fields
 			: base(adornedElement)
 		{
 			_target = target;
-			//target.LayoutUpdated += AdornedElement_LayoutUpdated;
-			//AdornedElement.LayoutUpdated += AdornedElement_LayoutUpdated;
 		}
 
-		/*void AdornedElement_LayoutUpdated(object sender, EventArgs e)
+		protected override Size ArrangeOverride(Size finalSize)
 		{
-			var a = AdornerLayer.GetAdornerLayer(this);
-			if (a != null)
-			{
-				a.Update();
-			}
-		}*/
+			InvalidateVisual();
+			return base.ArrangeOverride(finalSize);
+		}
 
 		protected override void OnRender(System.Windows.Media.DrawingContext drawingContext)
 		{

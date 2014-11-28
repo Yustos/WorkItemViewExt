@@ -66,11 +66,13 @@
     <Compile Include="Controls\Behind\ColorGenerator.cs" />
     <Compile Include="Controls\Behind\Entities\AggregatedPositions.cs" />
     <Compile Include="Controls\Behind\Entities\RecordComparer.cs" />
+    <Compile Include="Controls\Behind\Helpers.cs" />
     <Compile Include="Controls\Behind\ITimelinePart.cs" />
     <Compile Include="Controls\Behind\TimelineInput.cs" />
     <Compile Include="Controls\Behind\ViewportController.cs" />
     <Compile Include="Controls\Fields\ControlRevisionView.cs" />
     <Compile Include="Controls\Fields\ControlRevisionsView.cs" />
+    <Compile Include="Controls\Fields\Converters\BoolToImageConverter.cs" />
     <Compile Include="Controls\Fields\SelectionLinkAdorner.cs" />
     <Compile Include="Controls\MainRegion\ControlItems.cs" />
     <Compile Include="Controls\MainRegion\ControlPath.cs" />
@@ -80,12 +82,15 @@
     <Compile Include="Controls\ThumbRegion\ControlThumb.cs" />
     <Compile Include="Controls\MainRegion\ControlTitle.cs" />
     <Compile Include="Controls\TimeLine.cs" />
+    <Compile Include="Interaction\Changeset.cs" />
+    <Compile Include="Interaction\Attachment.cs" />
     <Compile Include="Interaction\Field.cs" />
     <Compile Include="Entities\Item.cs" />
     <Compile Include="Entities\Record.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Interaction\LoaderCommand.cs" />
+    <Compile Include="Interaction\RevisionChanges.cs" />
     <Compile Include="Interaction\RevisionLoader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
@@ -113,7 +118,12 @@
     </None>
     <AppDesigner Include="Properties\" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="Resources\Added.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Deleted.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

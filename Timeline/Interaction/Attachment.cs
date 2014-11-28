@@ -6,8 +6,12 @@ using System.Threading.Tasks;
 
 namespace YL.Timeline.Interaction
 {
-	public class RevisionLoader
+	public sealed class Attachment
 	{
-		public delegate RevisionChanges LoadInfoDelegate(int workItemId, int rev);
+		public bool? IsAdded { get; set; }
+
+		public string Name { get; set; }
+
+		public Uri Uri { get; set; }
 	}
 }

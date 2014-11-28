@@ -27,8 +27,31 @@ namespace YL.Timeline.Shell
 			InitializeComponent();
 			var items = GetData();
 			DataContext = new DataModel(items, (id, rev) => {
-				return new[] {
-					new Field { Name = "test", OriginalValue = "Orig", Value = "val"}
+				return new RevisionChanges
+				{
+					Fields = new[]
+					{
+						new Field { Name = "test", OriginalValue = "Orig", Value = "val"},
+						new Field { Name = "testeq", OriginalValue = "eq", Value = "eq"}
+					},
+					Attachments = new []
+					{
+						new Attachment
+						{
+							IsAdded = true,
+							Name = "testAttach",
+							Uri = new Uri("http://localhost/attachment/test.txt")
+						}
+					},
+					Changesets = new[]
+					{
+						new Changeset
+						{
+							Uri = new Uri("http://localhost/changeset/id"),
+							IsAdded = true,
+							Comment= "TestCS"
+						}
+					}
 				};
 			});
 		}
@@ -70,19 +93,25 @@ namespace YL.Timeline.Shell
 				{
 					new Record(item2) {Rev = 0, Date = DateTime.Now.AddDays(-5) },
 					linkSrc,
-					new Record(item2) {Rev = 2, Date = DateTime.Now.AddDays(-3) },
+					new Record(item2) {Rev = 2, Date = DateTime.Now.AddDays(-3),
+						AddedAttachments = 2,
+						RemovedChangesets = 4
+					},
 					new Record(item2) {Rev = 3, Date = DateTime.Now.AddDays(-2.98) }
 				};
 
 			var item5 = new Item { Id = 19, Title = "Test 19" };
 			item5.Records = new []
 				{
-					new Record(item5) {Rev = 0, Date = DateTime.Now.AddDays(-4), State = "Proposed" },
-					new Record(item5) { Rev = 1, Date = DateTime.Now.AddDays(-2.98), State = "Active", },
-					new Record(item5) {Rev = 2, Date = DateTime.Now.AddDays(-2), State = "Active", },
-					new Record(item5) {Rev = 3, Date = DateTime.Now.AddDays(-1), State = "Resolved", }
+					new Record(item5) { Rev = 0, Date = DateTime.Now.AddDays(-4), State = "Proposed" },
+					new Record(item5) { Rev = 1, Date = DateTime.Now.AddDays(-2.98), State = "Active",
+						AddedAttachments = 2,
+						RemovedChangesets = 4
+					},
+					new Record(item5) { Rev = 2, Date = DateTime.Now.AddDays(-2), State = "Active", },
+					new Record(item5) { Rev = 3, Date = DateTime.Now.AddDays(-1), State = "Resolved", }
 				};
-
+			
 			return new[] { item, item2, item3, item4, item5 };
 		}
 

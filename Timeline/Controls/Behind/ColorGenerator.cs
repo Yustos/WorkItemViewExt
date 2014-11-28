@@ -20,7 +20,7 @@ namespace YL.Timeline.Controls.Behind
 			}
 
 			var hash = state.GetHashCode();
-			result = HsvToRgb(hash, 200, 0.7);
+			result = HsvToRgb(hash, 0.2, 0.9);
 			result.A = 70;
 			_statesColors.Add(state, result);
 			return result;

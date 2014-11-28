@@ -111,26 +111,30 @@ namespace YL.Timeline.Controls.MainRegion
 			{
 				control.UpdateViewport();
 			}
-			//InvalidateMeasure();
-			//InvalidateVisual();
 			_adornerLayer.Update();
+		}
+
+		internal void ToggleSelectedRecord(ControlRecord recordControl)
+		{
+			this.BeginUpdateSelectedItems();
+
+			
+			if (SelectedItems.Contains(recordControl))
+			{
+				SelectedItems.Remove(recordControl);
+			}
+			else
+			{
+				SelectedItems.Add(recordControl);
+			}
+
+			this.EndUpdateSelectedItems();
 		}
 
 		private void ControlItemsMouseUp(object sender, MouseButtonEventArgs e)
 		{
-			this.BeginUpdateSelectedItems();
-
-			var record = ((FrameworkElement)e.OriginalSource).Parent;
-			if (SelectedItems.Contains(record))
-			{
-				SelectedItems.Remove(record);
-			}
-			else
-			{
-				SelectedItems.Add(record);
-			}
-
-			this.EndUpdateSelectedItems();
+			var recordControl = Helpers.FindParent<ControlRecord>((DependencyObject)e.OriginalSource);
+			ToggleSelectedRecord(recordControl);
 		}
 	}
 }

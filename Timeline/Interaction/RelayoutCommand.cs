@@ -7,13 +7,11 @@ using System.Windows.Input;
 
 namespace YL.Timeline.Interaction
 {
-	public class LoaderCommand : ICommand
+	public class RelayoutCommand : ICommand
 	{
-		private readonly RevisionLoader.LoadInfoDelegate _loader;
 
-		public LoaderCommand(RevisionLoader.LoadInfoDelegate loader)
+		public RelayoutCommand()
 		{
-			_loader = loader;
 		}
 
 		public bool CanExecute(object parameter)
@@ -26,11 +24,6 @@ namespace YL.Timeline.Interaction
 		public void Execute(object parameter)
 		{
 			
-		}
-
-		public RevisionChanges LoadInfo(int id, int rev)
-		{
-			return _loader(id, rev);
 		}
 	}
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.WorkItemTracking.Client;
+using Microsoft.VisualStudio.Services.Integration;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
@@ -20,7 +21,7 @@ namespace YL.WorkItemViewExt.WorkItemTimeline.Controls
 			base.Initialize();
 
 			var context = ((ITeamFoundationContextManager)GetService(typeof(ITeamFoundationContextManager))).CurrentContext;
-			_model = new TimelineModel(new TimelineService(context));
+			_model = new TimelineModel(new TimelineService(context, (message) => OutputWindowHelper.OutputString(this, message)));
 			base.Content = new ControlTimeline(_model);
 		}
 
