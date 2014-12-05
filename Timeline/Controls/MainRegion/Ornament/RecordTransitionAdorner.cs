@@ -9,31 +9,34 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
-namespace YL.Timeline.Controls.MainRegion
+namespace YL.Timeline.Controls.MainRegion.Ornament
 {
-	public class ControlPath : Adorner
+	public class RecordTransitionAdorner : Adorner
 	{
 		private readonly ControlRecord _from;
 		private readonly ControlRecord _to;
 
-		private static readonly Pen _pen = new Pen(new SolidColorBrush(Color.FromArgb(160, 0, 170, 0)), 2) { DashStyle = DashStyles.Dash };
+		private static readonly Pen _pen = new Pen(new SolidColorBrush(Color.FromArgb(160, 0, 170, 0)), 2);
 
-		public ControlPath(UIElement adornedElement, ControlRecord from, ControlRecord to)
+		public RecordTransitionAdorner(UIElement adornedElement, ControlRecord from, ControlRecord to)
 			: base(adornedElement)
 		{
+			IsClipEnabled = true;
+			IsHitTestVisible = false;
 			_from = from;
 			_to = to;
-			IsClipEnabled = true;
 		}
 
 		protected override void OnRender(DrawingContext drawingContext)
 		{
-			var topFrom = _from.ActualTop;
-			var topTo = _to.ActualTop;
+			var posFrom = _from.TranslatePoint(new Point(0, 0), AdornedElement);
+			var posTo = _to.TranslatePoint(new Point(0, 0), AdornedElement);
 
-			var leftFrom = _from.ActualLeft;
-			var leftTo = _to.ActualLeft;
+			var topFrom = posFrom.Y;
+			var topTo = posTo.Y;
 
+			var leftFrom = posFrom.X;
+			var leftTo = posTo.X;
 
 			var g = new PathGeometry();
 			var path = new PathFigure();

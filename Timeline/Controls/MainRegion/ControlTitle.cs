@@ -11,19 +11,33 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using YL.Timeline.Entities;
 
 namespace YL.Timeline.Controls
 {
-	public class Title : UserControl
+	public class ControlTitle : UserControl
 	{
-		public Title(int id, string title)
+		public ControlTitle()
 		{
 			var dock = new DockPanel { LastChildFill = true };
-			dock.Children.Add(new TextBox { Text = Convert.ToString(id), FontWeight = FontWeights.Bold, BorderThickness = new Thickness(0), IsReadOnly = true, Background = Brushes.Transparent });
-			dock.Children.Add(new TextBlock { Text = title, Margin = new Thickness(1) });
+			var idText = new TextBox
+			{
+				FontWeight = FontWeights.Bold,
+				BorderThickness = new Thickness(0),
+				IsReadOnly = true,
+				Background = Brushes.Transparent
+			};
+			idText.SetBinding(TextBox.TextProperty, new Binding("Id"));
+			dock.Children.Add(idText);
+
+			var titleText = new TextBlock
+			{
+				Margin = new Thickness(1)
+			};
+			titleText.SetBinding(TextBlock.TextProperty, new Binding("Title"));
+			dock.Children.Add(titleText);
 
 			Content = dock;
-			Background = new LinearGradientBrush(Color.FromRgb(198, 206, 206), Color.FromRgb(218, 224, 224), 90);
 		}
 	}
 }

@@ -14,112 +14,118 @@ using System.Windows.Shapes;
 using YL.Timeline.Controls.Behind;
 using YL.Timeline.Controls.Behind.Entities;
 using YL.Timeline.Controls.MainRegion;
+using YL.Timeline.Controls.MainRegion.Ornament;
 using YL.Timeline.Entities;
 
 namespace YL.Timeline.Controls
 {
 	public class ControlRecords : Canvas
 	{
-		private readonly SortedList<Record, ControlRecord> _records = new SortedList<Record, ControlRecord>(new RecordComparer());
+		public static readonly DependencyProperty RecordsProperty =
+			DependencyProperty.Register("Records", typeof(Record[]),
+			typeof(ControlRecords),
+			new UIPropertyMetadata(null, (d, doa) =>
+			{
+				var host = (ControlRecords)d;
+				host.UpdateRecords((Record[])doa.NewValue);
+			}));
 
-		private readonly Dictionary<double, double> _lines = new Dictionary<double, double>();
-
-		private readonly List<Tuple<double, double, double, string>> _states = new List<Tuple<double, double, double, string>>();
-
-		private readonly ControlRecord _lastElement;
-
-		private readonly ViewportController _controller;
-
-#warning Not good.
-		internal SortedList<Record, ControlRecord> RecordControls
+		public Record[] Records
 		{
 			get
 			{
-				return _records;
+				return (Record[])GetValue(RecordsProperty);
+			}
+			set
+			{
+				SetValue(RecordsProperty, value);
 			}
 		}
 
-		private readonly List<ControlPath> _paths = new List<ControlPath>();
+		public double LastElementWidth { get; set; }
 
-		public ControlRecords(ViewportController controller, Record[] records)
+		public ControlRecords()
 		{
-			_controller = controller;
 			ClipToBounds = false;
+		}
+
+		private void UpdateRecords(Record[] records)
+		{
+			var layer = AdornerLayer.GetAdornerLayer(this);
+			ControlRecord last = null;
 			foreach (var record in records)
 			{
 				var recordControl = new ControlRecord(record);
 				Children.Add(recordControl);
-				_records.Add(record, recordControl);
-				_lastElement = recordControl;
+				if (last != null)
+				{
+					layer.Add(new StateAdorner(recordControl, last, recordControl));
+				}
+				last = recordControl;
 			}
-		}
-
-		internal void UpdateViewport()
-		{
-			InvalidateMeasure();
-			InvalidateVisual();
 		}
 
 		protected override Size MeasureOverride(Size constraint)
 		{
-			base.MeasureOverride(constraint);
-
-			_lastElement.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-			foreach (var record in _records)
+			if (Children.Count > 0)
 			{
-				record.Value.ActualLeft = _controller.Interpolate(record.Key, constraint.Width, _lastElement.DesiredSize.Width);
-			}
+				base.MeasureOverride(constraint);
 
-			var height = CalculateCollisions();
-			return new Size(constraint.Width, height);
-		}
-
-		protected override void OnRender(DrawingContext dc)
-		{
-			foreach (var state in _states)
-			{
-				if (state.Item4 == null)
+				var controller = TimeLine.GetController(this);
+				var childs = Children.OfType<ControlRecord>().ToList();
+				LastElementWidth = childs.Last().DesiredSize.Width;
+				foreach (var child in childs)
 				{
-					continue;
+					var record = (Record)child.DataContext;
+					child.ActualLeft = controller.Interpolate(record.Date, constraint.Width, controller.LastElementWidth);
 				}
-				dc.DrawRectangle(new SolidColorBrush(ColorGenerator.GetColor(state.Item4)), null,
-						new Rect(state.Item1, state.Item3, state.Item2 - state.Item1, 16));
+
+				var h = CalculateCollisions(childs);
+				return new Size(constraint.Width, h);
+			}
+			else
+			{
+				return base.MeasureOverride(constraint);
 			}
 		}
 
-		private double CalculateCollisions()
+		protected override Size ArrangeOverride(Size arrangeSize)
+		{
+			var result = base.ArrangeOverride(arrangeSize);
+
+#warning Not sure.
+			var layer = AdornerLayer.GetAdornerLayer(this);
+			layer.Update();
+
+			return result;
+		}
+
+		private double CalculateCollisions(List<ControlRecord> childs)
 		{
 #warning Dont calculate or hide invisible records.
-			_lines.Clear();
-			_states.Clear();
-
-			KeyValuePair<Record, ControlRecord> last = _records.First();
-			var firstLine = GetTop(last.Value);
-			_lines[double.IsNaN(firstLine) ? 0 : firstLine] = last.Value.DesiredSize.Height;
-			double max = last.Value.DesiredSize.Height;
-			foreach (var record in _records.Skip(1))
+			var last = childs.First();
+			var firstLine = GetTop(last);
+			double max = last.ActualTop + last.DesiredSize.Height;
+			foreach (var record in childs.Skip(1))
 			{
-				var lastTop = GetTop(last.Value);
-				var lastLeft = GetLeft(last.Value);
-				var curLeft = GetLeft(record.Value);
+				var lastTop = GetTop(last);
+				var lastLeft = GetLeft(last);
+				var curLeft = GetLeft(record);
 				if (double.IsNaN(lastTop))
 				{
 					lastTop = 0;
 				}
 
-				if (lastLeft + last.Value.DesiredSize.Width >= curLeft)
+				if (lastLeft + last.DesiredSize.Width >= curLeft)
 				{
-					record.Value.ActualTop = lastTop + last.Value.DesiredSize.Height;
-					max = Math.Max(lastTop + last.Value.DesiredSize.Height + record.Value.DesiredSize.Height, max);
-					_lines[lastTop + last.Value.DesiredSize.Height] = record.Value.DesiredSize.Height;
+					record.ActualTop = lastTop + last.DesiredSize.Height;
 				}
 				else
 				{
-					record.Value.ActualTop = 0;
+					record.ActualTop = 0;
 				}
 
-				_states.Add(new Tuple<double, double, double, string>(lastLeft, curLeft, record.Value.ActualTop + record.Value.DesiredSize.Height / 2 - 10, last.Key.State));
-
+				max = Math.Max(record.ActualTop + record.DesiredSize.Height, max);
 				last = record;
 			}
 			return max;

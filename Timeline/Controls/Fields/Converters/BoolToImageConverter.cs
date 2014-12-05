@@ -10,13 +10,14 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using YL.Timeline.Properties;
+using YL.Timeline.Controls.Behind;
 
 namespace YL.Timeline.Controls.Fields.Converters
 {
 	public sealed class BoolToImageConverter: IValueConverter
 	{
-		private static readonly BitmapSource _addedSource = Bitmap2BitmapImage(Resources.Added);
-		private static readonly BitmapSource _deletedSource = Bitmap2BitmapImage(Resources.Deleted);
+		private static readonly BitmapSource _addedSource = Resources.Added.ToSource();
+		private static readonly BitmapSource _deletedSource = Resources.Deleted.ToSource();
 
 		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
 		{
@@ -30,16 +31,6 @@ namespace YL.Timeline.Controls.Fields.Converters
 		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
 		{
 			throw new NotImplementedException();
-		}
-
-		private static BitmapSource Bitmap2BitmapImage(Bitmap bitmap)
-		{
-			BitmapSource i = Imaging.CreateBitmapSourceFromHBitmap(
-						   bitmap.GetHbitmap(),
-						   IntPtr.Zero,
-						   Int32Rect.Empty,
-						   BitmapSizeOptions.FromEmptyOptions());
-			return (BitmapSource)i;
 		}
 	}
 }

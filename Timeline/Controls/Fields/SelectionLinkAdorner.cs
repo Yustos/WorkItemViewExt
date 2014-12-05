@@ -14,6 +14,8 @@ namespace YL.Timeline.Controls.Fields
 	{
 		private readonly ControlRevisionView _target;
 
+		private readonly Pen _pen = new Pen(new SolidColorBrush(Color.FromArgb(80, 0, 200, 0)), 2);
+
 		public SelectionLinkAdorner(UIElement adornedElement, ControlRevisionView target)
 			: base(adornedElement)
 		{
@@ -28,14 +30,18 @@ namespace YL.Timeline.Controls.Fields
 
 		protected override void OnRender(System.Windows.Media.DrawingContext drawingContext)
 		{
-			var from = this.TranslatePoint(new System.Windows.Point(this.DesiredSize.Width / 2, this.DesiredSize.Height), this);
-			var to = _target.TranslatePoint(new System.Windows.Point(_target.DesiredSize.Width / 2, 0), this);
+			var from = AdornedElement.IsVisible
+				? TranslatePoint(new Point(DesiredSize.Width / 2, DesiredSize.Height), this)
+				: ((FrameworkElement)((FrameworkElement)AdornedElement).Parent).TranslatePoint(new Point(0,0), this);
+			_pen.DashStyle = AdornedElement.IsVisible ? DashStyles.Solid : DashStyles.Dot;
+
+			var to = _target.TranslatePoint(new Point(_target.DesiredSize.Width / 2, 0), this);
 			if (from.Y > to.Y)
 			{
 				return;
 			}
 
-			drawingContext.DrawLine(new System.Windows.Media.Pen(new SolidColorBrush(Color.FromArgb(80, 0,200,0)), 2), from, to);
+			drawingContext.DrawLine(_pen, from, to);
 		}
 	}
 }

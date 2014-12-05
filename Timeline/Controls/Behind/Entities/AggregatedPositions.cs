@@ -5,10 +5,10 @@ using System.Text;
 
 namespace YL.Timeline.Controls.Behind.Entities
 {
-	internal sealed class AggregatedPositions
+	public sealed class AggregatedPositions
 	{
-		internal int Apex { get; set; }
+		public int Apex { get; set; }
 
-		internal IDictionary<int, int> Aggregations { get; set; }
+		public IDictionary<double, int> Aggregations { get; set; }
 	}
 }

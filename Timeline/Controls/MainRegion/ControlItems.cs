@@ -15,103 +15,93 @@ using System.Windows.Shapes;
 using YL.Timeline.Controls.Behind;
 using YL.Timeline.Controls.Behind.Entities;
 using YL.Timeline.Controls.Fields;
+using YL.Timeline.Controls.MainRegion.Ornament;
 using YL.Timeline.Controls.ThumbRegion;
 using YL.Timeline.Entities;
 
 namespace YL.Timeline.Controls.MainRegion
 {
-	public class ControlItems : MultiSelector, ITimelinePart
+	public class ControlItems : MultiSelector
 	{
-		private readonly List<ControlRecords> _records = new List<ControlRecords>();
-
-		private AdornerLayer _adornerLayer;
-
-		private ViewportController _controller;
-
 		public ControlRecord[] SelectedRecords
 		{
 			get
 			{
 				return SelectedItems.OfType<ControlRecord>().ToArray();
-				/*return SelectedItems.OfType<FrameworkElement>().
-					Select(r => r.DataContext as Record).
-					Where(r => r != null).ToArray();*/
 			}
 		}
 
-		public ControlItems()
+		public static readonly DependencyProperty ScaleProperty =
+			DependencyProperty.Register("Scale", typeof(double),
+			typeof(ControlItems),
+			new FrameworkPropertyMetadata(1.0, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender));
+
+		public static readonly DependencyProperty StartProperty =
+			DependencyProperty.Register("Start", typeof(double),
+			typeof(ControlItems),
+			new FrameworkPropertyMetadata(0.0, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender));
+
+		public double Scale
 		{
-			
-			this.MouseUp += ControlItemsMouseUp;
-			this.Margin = new Thickness(10, 0, 10, 0);
+			get
+			{
+				return (double)GetValue(ScaleProperty);
+			}
+			set
+			{
+				SetValue(ScaleProperty, value);
+			}
 		}
 
-		public void SetController(ViewportController controller)
+		public double Start
 		{
-			_adornerLayer = AdornerLayer.GetAdornerLayer(this);
-			var controls = new Dictionary<Record, ControlRecord>();
+			get
+			{
+				return (double)GetValue(StartProperty);
+			}
+			set
+			{
+				SetValue(StartProperty, value);
+			}
+		}
 
+		private readonly ViewportController _controller;
+
+		public ControlItems(ViewportController controller)
+		{
 			_controller = controller;
-			foreach (var item in controller.Input.Items)
-			{
-				var title = new Title(item.Id, item.Title);
-				Items.Add(title);
+			SetBinding(ScaleProperty, new Binding("Scale") { Source = controller });
+			SetBinding(StartProperty, new Binding("Start") { Source = controller });
 
-				var c = new ControlRecords(controller, item.Records);
-				foreach (var r in c.RecordControls)
-				{
-					controls.Add(r.Key, r.Value);
-				}
-				_records.Add(c);
-				Items.Add(c);
+			MouseUp += ControlItemsMouseUp;
 
-				// Prepare revision paths
-				ControlRecord last = null;
-				foreach (var control in c.RecordControls)
-				{
-					if (last != null)
-					{
-						_adornerLayer.Add(new ControlPath((UIElement)last.Parent, last, control.Value));
-					}
-
-					last = control.Value;
-				}
-			}
-
-			// Prepare links over items
-			Action<IEnumerable<Record>, ControlRecord, bool> addControls = (sourceRecords, sourceControl, type) =>
-				{
-					if (sourceRecords != null)
-					{
-						foreach (var link in sourceRecords)
-						{
-							ControlRecord targetControl;
-							if (controls.TryGetValue(link, out targetControl))
-							{
-								_adornerLayer.Add(new LinkRender(this, sourceControl, targetControl, type));
-							}
-							else
-							{
-#warning Log?
-							}
-						}
-					}
-				};
-
-			foreach (var control in controls)
-			{
-				addControls(control.Key.AddedLinks, control.Value, true);
-				addControls(control.Key.RemovedLinks, control.Value, false);
-			}
+			var factory = new FrameworkElementFactory(typeof(ControlItem));
+			ItemTemplate = new DataTemplate { VisualTree = factory };
 		}
 
-		public void UpdateViewport()
+		protected override Size MeasureOverride(Size constraint)
 		{
-			foreach (var control in _records)
+			var childs = Helpers.FindVisualChildrens<ControlRecords>(this).ToArray();
+			foreach (var child in childs)
 			{
-				control.UpdateViewport();
+				child.InvalidateMeasure();
 			}
-			_adornerLayer.Update();
+			var measure = base.MeasureOverride(constraint);
+
+			_controller.LastElementWidth = childs.Length > 0 ? childs.Max(c => c.LastElementWidth) : 0;
+
+			return measure;
+		}
+
+		protected override void OnRender(DrawingContext drawingContext)
+		{
+			for (var start = _controller.Input.Min.Date; start <= _controller.Input.Max; start = start.AddDays(1))
+			{
+				var pos = _controller.Interpolate(start, ActualWidth - 2, _controller.LastElementWidth);
+				drawingContext.DrawLine(new Pen(new SolidColorBrush(Color.FromArgb(127, 127, 127, 127)), 1),
+					new Point(pos, 0),
+					new Point(pos, ActualHeight));
+			}
 		}
 
 		internal void ToggleSelectedRecord(ControlRecord recordControl)

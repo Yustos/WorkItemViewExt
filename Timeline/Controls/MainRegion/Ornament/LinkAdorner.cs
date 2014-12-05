@@ -7,9 +7,9 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 
-namespace YL.Timeline.Controls.MainRegion
+namespace YL.Timeline.Controls.MainRegion.Ornament
 {
-	internal class LinkRender : Adorner
+	internal class LinkAdorner : Adorner
 	{
 		private readonly ControlRecord _from;
 		private readonly ControlRecord _to;
@@ -18,7 +18,7 @@ namespace YL.Timeline.Controls.MainRegion
 		private static readonly Pen _penAdded = new Pen(new SolidColorBrush(Color.FromArgb(160, 0, 0, 170)), 2);
 		private static readonly Pen _penRemoved = new Pen(new SolidColorBrush(Color.FromArgb(160, 170, 0, 0)), 2) { DashStyle = DashStyles.Dot };
 
-		internal LinkRender(UIElement adornedElement, ControlRecord from, ControlRecord to, bool added)
+		internal LinkAdorner(UIElement adornedElement, ControlRecord from, ControlRecord to, bool added)
 			: base(adornedElement)
 		{
 			IsClipEnabled = true;
@@ -28,20 +28,8 @@ namespace YL.Timeline.Controls.MainRegion
 		}
 		protected override void OnRender(DrawingContext drawingContext)
 		{
-			var posFrom = _from.TranslatePoint(new Point(0, 0), AdornedElement);
-			var posTo = _to.TranslatePoint(new Point(0, 0), AdornedElement);
-
-#warning Something not good.
-			//var posFrom = new Point(Canvas.GetLeft(_from), Canvas.GetTop(_from));
-			//var posTo = new Point(Canvas.GetLeft(_to), Canvas.GetTop(_to));
-			posFrom.X = Canvas.GetLeft(_from);
-			posTo.X = Canvas.GetLeft(_to);
-			
-			posFrom.X += _from.DesiredSize.Width;
-			posFrom.Y += _from.DesiredSize.Height / 2;
-
-			posTo.X += _to.DesiredSize.Width;
-			posTo.Y += _to.DesiredSize.Height / 2;
+			var posFrom = _from.TranslatePoint(new Point(_from.DesiredSize.Width, _from.DesiredSize.Height / 2), AdornedElement);
+			var posTo = _to.TranslatePoint(new Point(_to.DesiredSize.Width, _to.DesiredSize.Height / 2), AdornedElement);
 
 			var midFrom = new Point(posFrom.X + 8, posFrom.Y);
 			var midTo = new Point(posFrom.X + 8, posTo.Y);

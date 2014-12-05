@@ -22,10 +22,12 @@ namespace YL.Timeline.Shell
 	/// </summary>
 	public partial class MainWindow : Window
 	{
+		private int _offset = 0;
+
 		public MainWindow()
 		{
 			InitializeComponent();
-			var items = GetData();
+			var items = GetData(_offset);
 			DataContext = new DataModel(items, (id, rev) => {
 				return new RevisionChanges
 				{
@@ -56,9 +58,9 @@ namespace YL.Timeline.Shell
 			});
 		}
 
-		private Item[] GetData()
+		private Item[] GetData(int offset)
 		{
-			var item4 = new Item { Id = 18, Title = "Test 18" };
+			var item4 = new Item { Id = offset + 18, Title = "Test " + (offset + 18) };
 			var linkTrg2 = new Record(item4) { Rev = 1, Date = DateTime.Now.AddDays(-3), State = "Active" };
 			item4.Records = new[]
 				{
@@ -70,15 +72,18 @@ namespace YL.Timeline.Shell
 				};
 			
 			var result = new List<Item>();
-			var item = new Item { Id = 5, Title = "Test 5" };
-			var linkSrc2 = new Record(item) { Rev = 0, Date = DateTime.Now.AddDays(-2), RemovedLinks = new[] { linkTrg2 } };
+			var item = new Item { Id = offset + 5, Title = "Test " + (offset + 5) };
+			var linkSrc2 = new Record(item) { Rev = 0, Date = DateTime.Now.AddDays(-2), RemovedLinks =
+				offset % 2 == 0 ? null : new[] { linkTrg2 }
+			};
 			item.Records = new []
 				{
 					linkSrc2,
-					new Record(item) {Rev = 1, Date = DateTime.Now.AddDays(-1) }
+					new Record(item) {Rev = 1, Date = DateTime.Now.AddDays(-2) },
+					new Record(item) {Rev = 2, Date = DateTime.Now.AddDays(-1).Date }
 				};
 
-			var item3 = new Item { Id = 17, Title = "Test 17" };
+			var item3 = new Item { Id = offset + 17, Title = "Test " + (offset + 17) };
 			var linkTrg = new Record(item3) { Rev = 2, Date = DateTime.Now.AddDays(-2) };
 			item3.Records = new[]
 				{
@@ -87,7 +92,7 @@ namespace YL.Timeline.Shell
 					linkTrg
 				};
 
-			var item2 = new Item { Id = 7, Title = "Test 7" };
+			var item2 = new Item { Id = offset + 7, Title = "Test " + (offset + 7) };
 			var linkSrc = new Record(item2) { Rev = 1, Date = DateTime.Now.AddDays(-3), AddedLinks = new[] { linkTrg } };
 			item2.Records = new []
 				{
@@ -100,7 +105,7 @@ namespace YL.Timeline.Shell
 					new Record(item2) {Rev = 3, Date = DateTime.Now.AddDays(-2.98) }
 				};
 
-			var item5 = new Item { Id = 19, Title = "Test 19" };
+			var item5 = new Item { Id = offset + 19, Title = "Test " + (offset + 19) };
 			item5.Records = new []
 				{
 					new Record(item5) { Rev = 0, Date = DateTime.Now.AddDays(-4), State = "Proposed" },
@@ -108,7 +113,7 @@ namespace YL.Timeline.Shell
 						AddedAttachments = 2,
 						RemovedChangesets = 4
 					},
-					new Record(item5) { Rev = 2, Date = DateTime.Now.AddDays(-2), State = "Active", },
+					new Record(item5) { Rev = 2, Date = DateTime.Now.AddDays(-2), State = offset % 2 == 0 ? "Resolved" : "Active", },
 					new Record(item5) { Rev = 3, Date = DateTime.Now.AddDays(-1), State = "Resolved", }
 				};
 			
@@ -128,6 +133,12 @@ namespace YL.Timeline.Shell
 					});
 			}
 			return result.ToArray();
+		}
+
+		private void MenuItem_MouseUp(object sender, System.Windows.RoutedEventArgs e)
+		{
+			var model = (DataModel)DataContext;
+			model.Items = GetData(++_offset);
 		}
 	}
 }

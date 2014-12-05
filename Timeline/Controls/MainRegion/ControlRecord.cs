@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using YL.Timeline.Controls.Behind;
 using YL.Timeline.Entities;
 
@@ -14,6 +15,14 @@ namespace YL.Timeline.Controls
 {
 	public class ControlRecord : Border
 	{
+		private static readonly BitmapSource[] _icons = new[]
+			{
+				Properties.Resources.AttachmentAdd.ToSource(),
+				Properties.Resources.AttachmentRemove.ToSource(),
+				Properties.Resources.ChangesetAdd.ToSource(),
+				Properties.Resources.ChangesetRemove.ToSource()
+			};
+
 		internal double ActualLeft
 		{
 			get
@@ -52,46 +61,56 @@ namespace YL.Timeline.Controls
 		{
 			DataContext = record;
 			BorderBrush = new SolidColorBrush(Color.FromRgb(130, 166, 207));
+			BorderThickness = new Thickness(1);
 			CornerRadius = new CornerRadius(3);
 
 			Style = CreateStyle(record.State);
 
 			var dockPanel = new DockPanel { LastChildFill = true };
 
+			if (record.AddedAttachments != 0 || record.RemovedAttachments != 0 || record.AddedChangesets != 0 || record.RemovedChangesets != 0)
+			{
+				var grid = new Grid();
+				grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+				grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+				grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+				grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+				AddDescBox(grid, 0, record.AddedAttachments, "Attachments added: {0}.", 0, 0);
+				AddDescBox(grid, 1, -record.RemovedAttachments, "Attachments removed: {0}.", 0, 1);
+				AddDescBox(grid, 2, record.AddedChangesets, "Changesets added: {0}.", 1, 0);
+				AddDescBox(grid, 3, -record.RemovedChangesets, "Changesets removed: {0}.", 1, 1);
+
+				dockPanel.Children.Add(grid);
+				DockPanel.SetDock(grid, Dock.Right);
+			}
+
 			var tb = new TextBlock();
 			tb.Text = string.Format("[{0}] {1}\r\n{2}", record.Rev, record.State, record.Date);
 			DockPanel.SetDock(tb, Dock.Top);
 			dockPanel.Children.Add(tb);
 
-			if (record.AddedAttachments != 0 || record.RemovedAttachments != 0 || record.AddedChangesets != 0 || record.RemovedChangesets != 0)
-			{
-				var grid = new Grid();
-				for (var i = 0; i < 4; i++)
-				{
-					grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-				}
-				AddDescBox(grid, record.AddedAttachments, "Attachments added: {0}.", 0);
-				AddDescBox(grid, -record.RemovedAttachments, "Attachments removed: {0}.", 1);
-				AddDescBox(grid, record.AddedChangesets, "Changesets added: {0}.", 2);
-				AddDescBox(grid, -record.RemovedChangesets, "Changesets removed: {0}.", 3);
-
-				dockPanel.Children.Add(grid);
-			}
+			
 
 			Child = dockPanel;
 		}
 
-		private void AddDescBox(Grid grid, int count, string description, int column)
+		private void AddDescBox(Grid icons, int iconIndex, int count, string description, int row, int column)
 		{
 			if (count != 0)
 			{
-				var tb = new TextBlock
+				var stack = new StackPanel
 				{
-					Text = string.Format("{0:+#;-#}{1}", count, description[0]),
+					Orientation = Orientation.Horizontal,
 					ToolTip = string.Format(description, count < 0 ? -count : count)
 				};
-				grid.Children.Add(tb);
-				Grid.SetColumn(tb, column);
+
+				stack.Children.Add(new Image { Source = _icons[iconIndex] });
+				stack.Children.Add(new TextBlock { Text = count.ToString() });
+
+				icons.Children.Add(stack);
+				Grid.SetRow(stack, row);
+				Grid.SetColumn(stack, column);
 			}
 		}
 
@@ -106,20 +125,12 @@ namespace YL.Timeline.Controls
 						Value = false,
 						Setters =
 						{
-							new Setter()
-							{
-								Property = BorderThicknessProperty,
-								Value = new Thickness(1)
-							},
-							new Setter()
-							{
-								Property = MarginProperty,
-								Value = new Thickness(1)
-							},
 							new Setter
 							{
 								Property = BackgroundProperty,
-								Value = new SolidColorBrush(color)
+								Value = new LinearGradientBrush(
+									color,
+									Color.FromArgb(70, color.R, color.G, color.B),  0)
 							}
 						}
 					});
@@ -133,16 +144,6 @@ namespace YL.Timeline.Controls
 					Value = true,
 					Setters =
 						{
-							new Setter()
-							{
-								Property = BorderThicknessProperty,
-								Value = new Thickness(2)
-							},
-							new Setter()
-							{
-								Property = MarginProperty,
-								Value = new Thickness(0)
-							},
 							new Setter
 							{
 								Property = BackgroundProperty,

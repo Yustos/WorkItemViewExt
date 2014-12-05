@@ -212,7 +212,8 @@ namespace YL.Timeline.Controls.Fields
 			var recordControl = (ControlRecord)DataContext;
 			if (_layer == null)
 			{
-				_layer = AdornerLayer.GetAdornerLayer(Helpers.FindParent<ControlRevisionsView>(this));
+				//_layer = AdornerLayer.GetAdornerLayer(Helpers.FindParent<ControlRevisionsView>(this));
+				_layer = AdornerLayer.GetAdornerLayer(Helpers.FindParent<ControlItems>(recordControl));
 			}
 			_adorner = new SelectionLinkAdorner(recordControl, this);
 			_layer.Add(_adorner);

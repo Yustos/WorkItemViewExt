@@ -6,10 +6,14 @@
         Title="MainWindow" Height="350" Width="525">
 	<Grid>
 		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"></RowDefinition>
 			<RowDefinition Height="*"></RowDefinition>
 			<RowDefinition Height="Auto"></RowDefinition>
 		</Grid.RowDefinitions>
-		<timeline:TimeLine Grid.Row="0" Items="{Binding Items}" SelectedRecords="{Binding SelectedRecords, Mode = TwoWay}"></timeline:TimeLine>
-		<fields:ControlRevisionsView Grid.Row="1" ItemsSource="{Binding SelectedRecords}" fields:ControlRevisionView.InfoLoaderCommand="{Binding LoadInfoCommand}" ></fields:ControlRevisionsView>
+		<Menu>
+			<MenuItem Header="Change" Click="MenuItem_MouseUp"></MenuItem>
+		</Menu>
+		<timeline:TimeLine Grid.Row="1" Items="{Binding Items}" SelectedRecords="{Binding SelectedRecords, Mode = TwoWay}"></timeline:TimeLine>
+		<fields:ControlRevisionsView Grid.Row="2" ItemsSource="{Binding SelectedRecords}" fields:ControlRevisionView.InfoLoaderCommand="{Binding LoadInfoCommand}" ></fields:ControlRevisionsView>
 	</Grid>
 </Window>
