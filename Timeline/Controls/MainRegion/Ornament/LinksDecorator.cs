@@ -22,7 +22,8 @@ namespace YL.Timeline.Controls.MainRegion.Ornament
 			typeof(LinksDecorator),
 			new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsMeasure, (d, doa) =>
 				{
-					d.Dispatcher.BeginInvoke(DispatcherPriority.Render, new Action(() => UpdateLinks(d)));
+					var host = (LinksDecorator)d;
+					d.Dispatcher.BeginInvoke(DispatcherPriority.Render, new Action(() => host.UpdateLinks()));
 				}));
 
 		public Item[] Items
@@ -37,9 +38,23 @@ namespace YL.Timeline.Controls.MainRegion.Ornament
 			}
 		}
 
-		private static void UpdateLinks(DependencyObject d)
+		public static readonly DependencyProperty ControllerProperty = ControlTimeLine.ControllerProperty.AddOwner(typeof(LinksDecorator));
+
+		public ViewportController Controller
 		{
-			var element = (UIElement)d;
+			get
+			{
+				return (ViewportController)GetValue(ControllerProperty);
+			}
+			set
+			{
+				SetValue(ControllerProperty, value);
+			}
+		}
+
+		private void UpdateLinks()
+		{
+			var element = (UIElement)this;
 			var adornerLayer = AdornerLayer.GetAdornerLayer(element);
 			var existAdorners = adornerLayer.GetAdorners(element);
 			if (existAdorners != null)
@@ -50,7 +65,7 @@ namespace YL.Timeline.Controls.MainRegion.Ornament
 				}
 			}
 
-			var controlRecords = Helpers.FindVisualChildrens<ControlRecord>(d).ToDictionary(e => (Record)e.DataContext, e => e);
+			var controlRecords = Helpers.FindVisualChildrens<ControlRecord>(this).ToDictionary(e => (Record)e.DataContext, e => e);
 
 			Action<IEnumerable<Record>, ControlRecord, bool> addControls = (sourceRecords, sourceControl, type) =>
 			{
@@ -65,7 +80,7 @@ namespace YL.Timeline.Controls.MainRegion.Ornament
 						}
 						else
 						{
-#warning Log?
+							Controller.Log(string.Format("Failed to get control for link {0} [{1}].", link.Owner.Id, link.Rev));
 						}
 					}
 				}

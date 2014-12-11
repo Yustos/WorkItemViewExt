@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -12,12 +14,15 @@ namespace YL.Timeline.Controls.Behind
 	public class ViewportController : INotifyPropertyChanged
 	{
 		private readonly TimelineInput _input;
+		private readonly ObservableCollection<Record> _selection = new ObservableCollection<Record>();
 
 		private double _start;
 		private double _scale;
 		private double _viewportWidth;
 		private double _lastElementWidth;
 		private AggregatedPositions _aggregatedPositions;
+
+		public Action<string> Logger { get; set; }
 
 		public double Scale
 		{
@@ -80,6 +85,14 @@ namespace YL.Timeline.Controls.Behind
 			}
 		}
 
+		public ObservableCollection<Record> Selection
+		{
+			get
+			{
+				return _selection;
+			}
+		}
+
 		public AggregatedPositions AggregatedPositions
 		{
 			get
@@ -93,12 +106,12 @@ namespace YL.Timeline.Controls.Behind
 			}
 		}
 
-		public ViewportController(TimelineInput input)
+		public ViewportController()
 		{
-			_input = input;
+			_input = new TimelineInput();
 			Scale = 1;
 			Start = 0;
-			input.PropertyChanged += (s, e) =>
+			_input.PropertyChanged += (s, e) =>
 				{
 					if (e.PropertyName == "Items")
 					{
@@ -114,12 +127,24 @@ namespace YL.Timeline.Controls.Behind
 			return step * (date.Ticks - _input.Min.Ticks);
 		}
 
-		internal double Interpolate(DateTime date, double viewportWidth, double lastElementWidth)
+		internal double Interpolate(DateTime date, double viewportWidth)
 		{
-			viewportWidth = viewportWidth - lastElementWidth;
+			viewportWidth = viewportWidth - LastElementWidth;
 			var step = viewportWidth / (_input.Max.Ticks - _input.Min.Ticks);
 			var startPos = viewportWidth * Start;
 			return (step * (date.Ticks - _input.Min.Ticks) - startPos) * Scale;
+		}
+
+		internal void Log(string message)
+		{
+			if (Logger != null)
+			{
+				Logger(message);
+			}
+			else
+			{
+				Trace.WriteLine(message);
+			}
 		}
 
 		private void UpdateAggregatedPositions()
@@ -179,21 +204,6 @@ namespace YL.Timeline.Controls.Behind
 				}
 			}
 		}
-
-		/*internal Dictionary<int, DateTime> AggregateLabels(double viewportWidth)
-		{
-			var hash = new Dictionary<int, DateTime>();
-			var step = viewportWidth / (Input.Max.Ticks - Input.Min.Ticks);
-			foreach (var item in Input.Items)
-			{
-				foreach (var record in item.Records)
-				{
-					var position = (int)((record.Date.Ticks - Input.Min.Ticks) * step + step);
-					hash[position] = record.Date;
-				}
-			}
-			return hash;
-		}*/
 
 		public event PropertyChangedEventHandler PropertyChanged;
 

@@ -15,9 +15,9 @@ using System.Windows.Shapes;
 
 namespace YL.WorkItemViewExt.WorkItemTimeline.Controls
 {
-	public partial class ControlTimeline : UserControl
+	public partial class ControlTimelinePane : UserControl
 	{
-		public ControlTimeline(TimelineModel model)
+		public ControlTimelinePane(TimelineModel model)
 		{
 			InitializeComponent();
 			DataContext = model;

@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using YL.Timeline.Entities;
-using Interaction = YL.Timeline.Interaction;
+using Details = YL.Timeline.Entities.RecordDetails;
 
 namespace YL.WorkItemViewExt.WorkItemTimeline
 {
@@ -22,10 +22,10 @@ namespace YL.WorkItemViewExt.WorkItemTimeline
 			_logger = logger;
 		}
 
-		internal Interaction.RevisionChanges GetChanges(int id, int rev)
+		internal Details.RevisionChanges GetChanges(int id, int rev)
 		{
 			_logger(string.Format("Load info for work item {0} revision {1}.{2}", id, rev, Environment.NewLine));
-			var result = new Interaction.RevisionChanges();
+			var result = new Details.RevisionChanges();
 			var store = _context.TeamProjectCollection.GetService<WorkItemStore>();
 			var workItem = store.GetWorkItem(id);
 			var revision = workItem.Revisions.OfType<Revision>().
@@ -35,7 +35,7 @@ namespace YL.WorkItemViewExt.WorkItemTimeline
 				return null;
 			}
 			result.Fields = revision.Fields.OfType<Field>().
-				Select(f => new YL.Timeline.Interaction.Field { Name = f.Name, OriginalValue = f.OriginalValue, Value = f.Value }).ToArray();
+				Select(f => new Details.Field { Name = f.Name, OriginalValue = f.OriginalValue, Value = f.Value }).ToArray();
 
 			var prevRevision = workItem.Revisions.OfType<Revision>().
 				FirstOrDefault(r => Convert.ToInt32(r.Fields[CoreField.Rev].Value) == rev - 1);
@@ -44,50 +44,54 @@ namespace YL.WorkItemViewExt.WorkItemTimeline
 				var prevAttachments = new HashSet<int>(prevRevision.Attachments.OfType<Attachment>().Select(a => a.Id));
 				var currentAttachments = new HashSet<int>(revision.Attachments.OfType<Attachment>().Select(a => a.Id));
 				var attachments = revision.Attachments.OfType<Attachment>().
-					Select(a => new Interaction.Attachment { IsAdded = prevAttachments.Contains(a.Id) ? null : (bool?)true, Uri = a.Uri, Name = a.Name }).ToList();
+					Select(a => new Details.Attachment { IsAdded = prevAttachments.Contains(a.Id) ? null : (bool?)true, Uri = a.Uri, Name = a.Name }).ToList();
 				attachments.AddRange(prevRevision.Attachments.OfType<Attachment>().Where(a => !currentAttachments.Contains(a.Id)).
-					Select(a => new Interaction.Attachment { IsAdded = false, Uri = a.Uri, Name = a.Name }));
+					Select(a => new Details.Attachment { IsAdded = false, Uri = a.Uri, Name = a.Name }));
 				result.Attachments = attachments.ToArray();
 
 				var prevChangesets = new HashSet<string>(prevRevision.Links.OfType<ExternalLink>().Select(a => a.LinkedArtifactUri));
 				var currentChangesets = new HashSet<string>(revision.Links.OfType<ExternalLink>().Select(a => a.LinkedArtifactUri));
 				var changesets = revision.Links.OfType<ExternalLink>().
-					Select(a => new Interaction.Changeset { IsAdded = prevChangesets.Contains(a.LinkedArtifactUri) ? null : (bool?)true, Uri = new Uri(a.LinkedArtifactUri), Comment = a.Comment }).ToList();
+					Select(a => new Details.Changeset { IsAdded = prevChangesets.Contains(a.LinkedArtifactUri) ? null : (bool?)true, Uri = new Uri(a.LinkedArtifactUri), Comment = a.Comment }).ToList();
 				changesets.AddRange(prevRevision.Links.OfType<ExternalLink>().Where(a => !currentChangesets.Contains(a.LinkedArtifactUri)).
-					Select(a => new Interaction.Changeset { IsAdded = false, Uri = new Uri(a.LinkedArtifactUri), Comment = a.Comment }));
+					Select(a => new Details.Changeset { IsAdded = false, Uri = new Uri(a.LinkedArtifactUri), Comment = a.Comment }));
 				result.Changesets = changesets.ToArray();
 			}
 			else
 			{
 				result.Attachments = revision.Attachments.OfType<Attachment>().
-					Select(a => new Interaction.Attachment { IsAdded = true, Uri = a.Uri, Name = a.Name }).ToArray();
+					Select(a => new Details.Attachment { IsAdded = true, Uri = a.Uri, Name = a.Name }).ToArray();
 				result.Changesets = revision.Links.OfType<ExternalLink>().
-					Select(l => new Interaction.Changeset { IsAdded = true, Uri = new Uri(l.LinkedArtifactUri), Comment = l.Comment }).ToArray();
+					Select(l => new Details.Changeset { IsAdded = true, Uri = new Uri(l.LinkedArtifactUri), Comment = l.Comment }).ToArray();
 			}
 
 			return result;
 		}
 
-		private Interaction.Field[] GetFields(int id, int rev)
+		private Details.Field[] GetFields(int id, int rev)
 		{
 			var store = _context.TeamProjectCollection.GetService<WorkItemStore>();
 			var workItem = store.GetWorkItem(id);
 			var revision = workItem.Revisions.OfType<Revision>().FirstOrDefault(r => Convert.ToInt32(r.Fields[CoreField.Rev].Value) == rev);
 			if (revision == null)
 			{
-				return new YL.Timeline.Interaction.Field[0];
+				return new Details.Field[0];
 			}
 			return revision.Fields.OfType<Field>().
-				Select(f => new YL.Timeline.Interaction.Field { Name = f.Name, OriginalValue = f.OriginalValue, Value = f.Value }).ToArray();
+				Select(f => new Details.Field { Name = f.Name, OriginalValue = f.OriginalValue, Value = f.Value }).ToArray();
 		}
 
 		internal Item[] GetItems(WorkItem[] workItems)
 		{
+			var loader = new Record.LoadDetailsDelegate((r) =>
+			{
+				return GetChanges(r.Owner.Id, r.Rev);
+			});
 			var items = new Dictionary<WorkItem, Item>();
 			foreach (var workItem in workItems)
 			{
-				items.Add(workItem, MapItem(workItem));
-				foreach (var relatedItem in GetRelatedItems(workItem))
+				items.Add(workItem, MapItem(workItem, loader));
+				foreach (var relatedItem in GetRelatedItems(workItem, loader))
 				{
 					items.Add(relatedItem.Item1, relatedItem.Item2);
 				}
@@ -96,11 +100,11 @@ namespace YL.WorkItemViewExt.WorkItemTimeline
 			return items.Values.ToArray();
 		}
 
-		private IEnumerable<Tuple<WorkItem, Item>> GetRelatedItems(WorkItem workItem)
+		private IEnumerable<Tuple<WorkItem, Item>> GetRelatedItems(WorkItem workItem, Record.LoadDetailsDelegate loader)
 		{
 			return workItem.Links.OfType<RelatedLink>().
 				Select(l => workItem.Store.GetWorkItem(l.RelatedWorkItemId)).
-				Select(w => Tuple.Create(w, MapItem(w)));
+				Select(w => Tuple.Create(w, MapItem(w, loader)));
 		}
 
 		private void FillLinks(Dictionary<WorkItem, Item> items)
@@ -202,20 +206,20 @@ namespace YL.WorkItemViewExt.WorkItemTimeline
 			return Tuple.Create(sourceRev, targetRev);
 		}
 
-		private Item MapItem(WorkItem workItem)
+		private Item MapItem(WorkItem workItem, Record.LoadDetailsDelegate loader)
 		{
 			var item = new Item
 			{
 				Id = workItem.Id,
 				Title = workItem.Title
 			};
-			item.Records = workItem.Revisions.Cast<Revision>().Select(r => MapRecord(r, item)).ToArray();
+			item.Records = workItem.Revisions.Cast<Revision>().Select(r => MapRecord(r, item, loader)).ToArray();
 			return item;
 		}
 
-		private Record MapRecord(Revision r, Item owner)
+		private Record MapRecord(Revision r, Item owner, Record.LoadDetailsDelegate loader)
 		{
-			return new Record(owner)
+			return new Record(owner, loader)
 			{
 				Rev = Convert.ToInt32(r.Fields[CoreField.Rev].Value),
 				Date = Convert.ToDateTime(r.Fields[CoreField.ChangedDate].Value),

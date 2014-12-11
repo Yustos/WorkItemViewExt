@@ -69,10 +69,12 @@
     <Compile Include="Controls\Behind\Helpers.cs" />
     <Compile Include="Controls\Behind\TimelineInput.cs" />
     <Compile Include="Controls\Behind\ViewportController.cs" />
+    <Compile Include="Controls\Fields\Commands\CloseAllDetailsCommand.cs" />
     <Compile Include="Controls\Fields\ControlRevisionView.cs" />
     <Compile Include="Controls\Fields\ControlRevisionsView.cs" />
     <Compile Include="Controls\Fields\Converters\BoolToImageConverter.cs" />
-    <Compile Include="Controls\Fields\SelectionLinkAdorner.cs" />
+    <Compile Include="Controls\Fields\Ornament\SelectionDecorator.cs" />
+    <Compile Include="Controls\Fields\Ornament\SelectionLinkAdorner.cs" />
     <Compile Include="Controls\MainRegion\ControlItem.cs" />
     <Compile Include="Controls\MainRegion\ControlItems.cs" />
     <Compile Include="Controls\MainRegion\Ornament\RecordTransitionAdorner.cs" />
@@ -83,17 +85,15 @@
     <Compile Include="Controls\MainRegion\Ornament\StateAdorner.cs" />
     <Compile Include="Controls\ThumbRegion\ControlThumb.cs" />
     <Compile Include="Controls\MainRegion\ControlTitle.cs" />
-    <Compile Include="Controls\TimeLine.cs" />
-    <Compile Include="Interaction\Changeset.cs" />
-    <Compile Include="Interaction\Attachment.cs" />
-    <Compile Include="Interaction\Field.cs" />
+    <Compile Include="Controls\ControlTimeLine.cs" />
+    <Compile Include="Entities\RecordDetails\Changeset.cs" />
+    <Compile Include="Entities\RecordDetails\Attachment.cs" />
+    <Compile Include="Entities\RecordDetails\Field.cs" />
     <Compile Include="Entities\Item.cs" />
     <Compile Include="Entities\Record.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Interaction\LoaderCommand.cs" />
-    <Compile Include="Interaction\RevisionChanges.cs" />
-    <Compile Include="Interaction\RevisionLoader.cs" />
+    <Compile Include="Entities\RecordDetails\RevisionChanges.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -138,6 +138,7 @@
   <ItemGroup>
     <None Include="Resources\ChangesetRemove.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

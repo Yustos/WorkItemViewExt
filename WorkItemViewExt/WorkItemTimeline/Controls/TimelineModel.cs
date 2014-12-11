@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using YL.Timeline.Controls;
 using YL.Timeline.Entities;
-using YL.Timeline.Interaction;
 
 namespace YL.WorkItemViewExt.WorkItemTimeline.Controls
 {
@@ -20,7 +19,6 @@ namespace YL.WorkItemViewExt.WorkItemTimeline.Controls
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		private Item[] _items;
-		private ControlRecord[] _records;
 
 		public Item[] Items
 		{
@@ -35,33 +33,9 @@ namespace YL.WorkItemViewExt.WorkItemTimeline.Controls
 			}
 		}
 
-#warning Must be Record type
-		public ControlRecord[] SelectedRecords
-		{
-			get
-			{
-				return _records;
-			}
-			set
-			{
-				_records = value;
-				OnPropertyChanged();
-			}
-		}
-
-		public ICommand LoadInfoCommand
-		{
-			get;
-			set;
-		}
-
 		internal TimelineModel(TimelineService service)
 		{
 			_service = service;
-			LoadInfoCommand = new LoaderCommand((id, rev) =>
-				{
-					return _service.GetChanges(id, rev);
-				});
 		}
 
 		internal void AddWorkItems(WorkItem[] workItems)

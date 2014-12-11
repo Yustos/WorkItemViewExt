@@ -42,6 +42,20 @@ namespace YL.Timeline.Controls
 			}
 		}
 
+		public static readonly DependencyProperty ControllerProperty = ControlTimeLine.ControllerProperty.AddOwner(typeof(ControlRecords));
+
+		public ViewportController Controller
+		{
+			get
+			{
+				return (ViewportController)GetValue(ControllerProperty);
+			}
+			set
+			{
+				SetValue(ControllerProperty, value);
+			}
+		}
+
 		public double LastElementWidth { get; set; }
 
 		public ControlRecords()
@@ -71,13 +85,13 @@ namespace YL.Timeline.Controls
 			{
 				base.MeasureOverride(constraint);
 
-				var controller = TimeLine.GetController(this);
+				var controller = Controller;
 				var childs = Children.OfType<ControlRecord>().ToList();
 				LastElementWidth = childs.Last().DesiredSize.Width;
 				foreach (var child in childs)
 				{
 					var record = (Record)child.DataContext;
-					child.ActualLeft = controller.Interpolate(record.Date, constraint.Width, controller.LastElementWidth);
+					child.ActualLeft = controller.Interpolate(record.Date, constraint.Width);
 				}
 
 				var h = CalculateCollisions(childs);

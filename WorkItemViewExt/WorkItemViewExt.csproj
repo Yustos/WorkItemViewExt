@@ -57,7 +57,7 @@
       <EmbedInteropTypes>true</EmbedInteropTypes>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.TeamFoundation.WorkItemTracking, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-		<Reference Include="Microsoft.VisualStudio.Services.Integration, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Services.Integration, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.VisualStudio.TextManager.Interop" />
     <Reference Include="Microsoft.VisualStudio.Shell.12.0" />
     <Reference Include="Microsoft.VisualStudio.Shell.Immutable.10.0" />
@@ -164,8 +164,8 @@
     <Compile Include="WorkItemRelations\WorkItemRelationsCommand.cs" />
     <Compile Include="WorkItemRelations\WorkItemTraverser.cs" />
     <Compile Include="WorkItemRelations\WorkItemReader.cs" />
-    <Compile Include="WorkItemTimeline\Controls\ControlTimeline.xaml.cs">
-      <DependentUpon>ControlTimeline.xaml</DependentUpon>
+    <Compile Include="WorkItemTimeline\Controls\ControlTimelinePane.xaml.cs">
+      <DependentUpon>ControlTimelinePane.xaml</DependentUpon>
     </Compile>
     <Compile Include="WorkItemTimeline\Controls\WorkItemTimelinePane.cs" />
     <Compile Include="WorkItemViewExtPackage.cs" />
@@ -206,7 +206,7 @@
     </VSCTCompile>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="WorkItemTimeline\Controls\ControlTimeline.xaml">
+    <Page Include="WorkItemTimeline\Controls\ControlTimelinePane.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

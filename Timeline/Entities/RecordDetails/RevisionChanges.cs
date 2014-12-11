@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace YL.Timeline.Interaction
+namespace YL.Timeline.Entities.RecordDetails
 {
 	public sealed class RevisionChanges
 	{

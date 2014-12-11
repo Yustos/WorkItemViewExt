@@ -1,19 +1,33 @@
 ﻿<Window x:Class="YL.Timeline.Shell.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		xmlns:timeline="clr-namespace:YL.Timeline.Controls;assembly=YL.Timeline"
 		xmlns:fields="clr-namespace:YL.Timeline.Controls.Fields;assembly=YL.Timeline"
-        Title="MainWindow" Height="350" Width="525">
+		xmlns:fieldsDecorator="clr-namespace:YL.Timeline.Controls.Fields.Ornament;assembly=YL.Timeline"
+		xmlns:controller="clr-namespace:YL.Timeline.Controls.Behind;assembly=YL.Timeline"
+		Title="MainWindow" Height="350" Width="525">
+	<Window.Resources>
+		<controller:ViewportController x:Key="controller"></controller:ViewportController>
+	</Window.Resources>
 	<Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"></RowDefinition>
 			<RowDefinition Height="*"></RowDefinition>
-			<RowDefinition Height="Auto"></RowDefinition>
 		</Grid.RowDefinitions>
 		<Menu>
 			<MenuItem Header="Change" Click="MenuItem_MouseUp"></MenuItem>
 		</Menu>
-		<timeline:TimeLine Grid.Row="1" Items="{Binding Items}" SelectedRecords="{Binding SelectedRecords, Mode = TwoWay}"></timeline:TimeLine>
-		<fields:ControlRevisionsView Grid.Row="2" ItemsSource="{Binding SelectedRecords}" fields:ControlRevisionView.InfoLoaderCommand="{Binding LoadInfoCommand}" ></fields:ControlRevisionsView>
+		<fieldsDecorator:SelectionDecorator SelectedItems="{Binding Source={StaticResource controller}, Path=Selection}" Grid.Row="1">
+			<Grid>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="*"></RowDefinition>
+					<RowDefinition Height="4"></RowDefinition>
+					<RowDefinition Height="*"></RowDefinition>
+				</Grid.RowDefinitions>
+				<timeline:ControlTimeLine Grid.Row="0" Items="{Binding Items}" timeline:ControlTimeLine.Controller="{StaticResource controller}"></timeline:ControlTimeLine>
+				<GridSplitter Grid.Row="1" Height="4" HorizontalAlignment="Stretch"></GridSplitter>
+				<fields:ControlRevisionsView Grid.Row="2" ItemsSource="{Binding Source={StaticResource controller}, Path=Selection}"></fields:ControlRevisionsView>
+			</Grid>
+		</fieldsDecorator:SelectionDecorator>
 	</Grid>
 </Window>

@@ -28,6 +28,11 @@ namespace YL.Timeline.Controls.MainRegion.Ornament
 		}
 		protected override void OnRender(DrawingContext drawingContext)
 		{
+			if (!_from.IsVisible || !_to.IsVisible)
+			{
+				return;
+			}
+
 			var posFrom = _from.TranslatePoint(new Point(_from.DesiredSize.Width, _from.DesiredSize.Height / 2), AdornedElement);
 			var posTo = _to.TranslatePoint(new Point(_to.DesiredSize.Width, _to.DesiredSize.Height / 2), AdornedElement);
 

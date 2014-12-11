@@ -11,9 +11,9 @@ using System.Windows.Media.Imaging;
 
 namespace YL.Timeline.Controls.Behind
 {
-	internal static class Helpers
+	public static class Helpers
 	{
-		internal static T FindParent<T>(DependencyObject child)
+		public static T FindParent<T>(DependencyObject child)
 			where T : DependencyObject
 		{
 			var current = child as T;
@@ -30,7 +30,7 @@ namespace YL.Timeline.Controls.Behind
 			return FindParent<T>(parentObject);
 		}
 
-		internal static IEnumerable<T> FindChildrens<T>(DependencyObject depObj)
+		public static IEnumerable<T> FindChildrens<T>(DependencyObject depObj)
 			where T : DependencyObject
 		{
 			if (depObj != null)
@@ -50,7 +50,7 @@ namespace YL.Timeline.Controls.Behind
 			}
 		}
 
-		internal static IEnumerable<T> FindVisualChildrens<T>(DependencyObject depObj)
+		public static IEnumerable<T> FindVisualChildrens<T>(DependencyObject depObj)
 			where T : DependencyObject
 		{
 			if (depObj != null)
@@ -75,10 +75,10 @@ namespace YL.Timeline.Controls.Behind
 		internal static BitmapSource ToSource(this Bitmap bitmap)
 		{
 			BitmapSource i = Imaging.CreateBitmapSourceFromHBitmap(
-						   bitmap.GetHbitmap(),
-						   IntPtr.Zero,
-						   Int32Rect.Empty,
-						   BitmapSizeOptions.FromEmptyOptions());
+				bitmap.GetHbitmap(),
+				IntPtr.Zero,
+				Int32Rect.Empty,
+				BitmapSizeOptions.FromEmptyOptions());
 			return (BitmapSource)i;
 		}
 	}

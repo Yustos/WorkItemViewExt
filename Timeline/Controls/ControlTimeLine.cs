@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -16,33 +17,26 @@ using YL.Timeline.Entities;
 
 namespace YL.Timeline.Controls
 {
-	public class TimeLine : UserControl
+	public class ControlTimeLine : UserControl
 	{
 		public static readonly DependencyProperty ItemsProperty =
 			DependencyProperty.Register("Items", typeof(Item[]),
-			typeof(TimeLine),
+			typeof(ControlTimeLine),
 			new UIPropertyMetadata(null,
 				(d, doa) =>
 				{
-					var host = (TimeLine)d;
-					host._input.Items = (Item[])doa.NewValue;
+					var host = (ControlTimeLine)d;
+					host.Controller.Input.Items = (Item[])doa.NewValue;
 				}));
-
-		public static readonly DependencyProperty SelectedRecordsProperty =
-			DependencyProperty.Register("SelectedRecords", typeof(ControlRecord[]),
-			typeof(TimeLine),
-			new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
 		public static readonly DependencyProperty ControllerProperty =
 			DependencyProperty.RegisterAttached("Controller", typeof(ViewportController),
-			typeof(TimeLine),
+			typeof(ControlTimeLine),
 			new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.Inherits));
 
 		private readonly ControlThumb _thumb;
 		private readonly ControlItems _host;
-
-		private readonly TimelineInput _input = new TimelineInput();
-		private readonly ViewportController _controller;
+		private readonly LinksDecorator _linksDecorator;
 
 		public Item[] Items
 		{
@@ -56,15 +50,15 @@ namespace YL.Timeline.Controls
 			}
 		}
 
-		public ControlRecord[] SelectedRecords
+		public ViewportController Controller
 		{
 			get
 			{
-				return (ControlRecord[])GetValue(SelectedRecordsProperty);
+				return (ViewportController)GetValue(ControllerProperty);
 			}
 			set
 			{
-				SetValue(SelectedRecordsProperty, value);
+				SetValue(ControllerProperty, value);
 			}
 		}
 
@@ -77,11 +71,8 @@ namespace YL.Timeline.Controls
 			return (ViewportController)element.GetValue(ControllerProperty);
 		}
 
-		public TimeLine()
+		public ControlTimeLine()
 		{
-			_controller = new ViewportController(_input);
-			SetController(this, _controller);
-			
 			var dock = new DockPanel();
 			dock.LastChildFill = true;
 
@@ -91,7 +82,7 @@ namespace YL.Timeline.Controls
 				Background = new LinearGradientBrush(Color.FromRgb(206, 225, 243), Color.FromRgb(231, 240, 250), 90)
 			};
 
-			_thumb = new ControlThumb(_controller);
+			_thumb = new ControlThumb();
 			_thumb.Height = 20;
 
 			thumbBorder.Child = _thumb;
@@ -102,29 +93,26 @@ namespace YL.Timeline.Controls
 			var scroll = new ScrollViewer();
 			scroll.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
 
-			var linksDecorator = new LinksDecorator();
+			_linksDecorator = new LinksDecorator();
 
-			_host = new ControlItems(_controller);
+			_host = new ControlItems();
 
-			var bindingHost = new Binding("Input.Items") { Source = _controller };
-			_host.SetBinding(ControlItems.ItemsSourceProperty, bindingHost);
-
-			var bindingLinks = new Binding("Input.Items") { Source = _controller };
-			linksDecorator.SetBinding(LinksDecorator.ItemsProperty, bindingLinks);
-
-			_host.SelectionChanged += hostSelectionChanged;
-
-			linksDecorator.Child = _host;
-			scroll.Content = linksDecorator;
+			_linksDecorator.Child = _host;
+			scroll.Content = _linksDecorator;
 			
 			dock.Children.Add(scroll);
 
 			Content = dock;
+			Loaded += TimeLineLoaded;
 		}
 
-		private void hostSelectionChanged(object sender, SelectionChangedEventArgs e)
+		private void TimeLineLoaded(object sender, RoutedEventArgs e)
 		{
-			SelectedRecords = _host.SelectedRecords.ToArray();
+			var bindingHost = new Binding("Input.Items") { Source = Controller };
+			_host.SetBinding(ControlItems.ItemsSourceProperty, bindingHost);
+
+			var bindingLinks = new Binding("Input.Items") { Source = Controller };
+			_linksDecorator.SetBinding(LinksDecorator.ItemsProperty, bindingLinks);
 		}
 	}
 }

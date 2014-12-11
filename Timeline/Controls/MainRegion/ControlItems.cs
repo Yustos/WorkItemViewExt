@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -23,14 +25,6 @@ namespace YL.Timeline.Controls.MainRegion
 {
 	public class ControlItems : MultiSelector
 	{
-		public ControlRecord[] SelectedRecords
-		{
-			get
-			{
-				return SelectedItems.OfType<ControlRecord>().ToArray();
-			}
-		}
-
 		public static readonly DependencyProperty ScaleProperty =
 			DependencyProperty.Register("Scale", typeof(double),
 			typeof(ControlItems),
@@ -40,7 +34,7 @@ namespace YL.Timeline.Controls.MainRegion
 			DependencyProperty.Register("Start", typeof(double),
 			typeof(ControlItems),
 			new FrameworkPropertyMetadata(0.0, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender));
-
+		
 		public double Scale
 		{
 			get
@@ -65,18 +59,41 @@ namespace YL.Timeline.Controls.MainRegion
 			}
 		}
 
-		private readonly ViewportController _controller;
+		public static readonly DependencyProperty ControllerProperty = ControlTimeLine.ControllerProperty.AddOwner(typeof(ControlItems));
 
-		public ControlItems(ViewportController controller)
+		public ViewportController Controller
 		{
-			_controller = controller;
-			SetBinding(ScaleProperty, new Binding("Scale") { Source = controller });
-			SetBinding(StartProperty, new Binding("Start") { Source = controller });
+			get
+			{
+				return (ViewportController)GetValue(ControllerProperty);
+			}
+			set
+			{
+				SetValue(ControllerProperty, value);
+			}
+		}
+
+		public ControlItems()
+		{
+			ToolTip = new ToolTip
+			{
+				StaysOpen = true,
+				Placement = System.Windows.Controls.Primitives.PlacementMode.MousePoint
+			};
 
 			MouseUp += ControlItemsMouseUp;
+			MouseMove += ControlItemsMouseMove;
 
 			var factory = new FrameworkElementFactory(typeof(ControlItem));
 			ItemTemplate = new DataTemplate { VisualTree = factory };
+			Loaded += ControlItemsLoaded;
+		}
+
+		private void ControlItemsLoaded(object sender, RoutedEventArgs e)
+		{
+			SetBinding(ScaleProperty, new Binding("Scale") { Source = Controller });
+			SetBinding(StartProperty, new Binding("Start") { Source = Controller });
+			Controller.Selection.CollectionChanged += SelectionCollectionChanged;
 		}
 
 		protected override Size MeasureOverride(Size constraint)
@@ -88,16 +105,17 @@ namespace YL.Timeline.Controls.MainRegion
 			}
 			var measure = base.MeasureOverride(constraint);
 
-			_controller.LastElementWidth = childs.Length > 0 ? childs.Max(c => c.LastElementWidth) : 0;
+			Controller.LastElementWidth = childs.Length > 0 ? childs.Max(c => c.LastElementWidth) : 0;
 
 			return measure;
 		}
 
 		protected override void OnRender(DrawingContext drawingContext)
 		{
-			for (var start = _controller.Input.Min.Date; start <= _controller.Input.Max; start = start.AddDays(1))
+			var controller = Controller;
+			for (var start = controller.Input.Min.Date; start <= controller.Input.Max; start = start.AddDays(1))
 			{
-				var pos = _controller.Interpolate(start, ActualWidth - 2, _controller.LastElementWidth);
+				var pos = controller.Interpolate(start, ActualWidth - 2);
 				drawingContext.DrawLine(new Pen(new SolidColorBrush(Color.FromArgb(127, 127, 127, 127)), 1),
 					new Point(pos, 0),
 					new Point(pos, ActualHeight));
@@ -106,25 +124,57 @@ namespace YL.Timeline.Controls.MainRegion
 
 		internal void ToggleSelectedRecord(ControlRecord recordControl)
 		{
-			this.BeginUpdateSelectedItems();
-
-			
-			if (SelectedItems.Contains(recordControl))
+			if (recordControl == null)
 			{
-				SelectedItems.Remove(recordControl);
+				return;
+			}
+			var controller = Controller;
+			var record = (Record)recordControl.DataContext;
+			if (controller.Selection.Contains(record))
+			{
+				controller.Selection.Remove(record);
 			}
 			else
 			{
-				SelectedItems.Add(recordControl);
+				controller.Selection.Add(record);
+			}
+		}
+
+		private void SelectionCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		{
+			var items = (IList<Record>)sender;
+			BeginUpdateSelectedItems();
+			SelectedItems.Clear();
+
+			if (items.Count > 0)
+			{
+				var childs = Helpers.FindVisualChildrens<ControlRecord>(this).ToArray();
+				foreach (var child in childs)
+				{
+					if (items.Contains(child.DataContext))
+					{
+						SelectedItems.Add(child);
+					}
+				}
 			}
 
-			this.EndUpdateSelectedItems();
+			EndUpdateSelectedItems();
 		}
 
 		private void ControlItemsMouseUp(object sender, MouseButtonEventArgs e)
 		{
 			var recordControl = Helpers.FindParent<ControlRecord>((DependencyObject)e.OriginalSource);
 			ToggleSelectedRecord(recordControl);
+		}
+
+		private void ControlItemsMouseMove(object sender, MouseEventArgs e)
+		{
+			var controller = Controller;
+			var x = e.GetPosition(this).X;
+			var dataPos = x / (ActualWidth - 2 - controller.LastElementWidth) / controller.Scale + controller.Start;
+			var ticks = controller.Input.Min.Ticks + (controller.Input.Range.Ticks) * dataPos;
+			var date = new DateTime((long)ticks);
+			((ToolTip)ToolTip).Content = date.ToString();
 		}
 	}
 }

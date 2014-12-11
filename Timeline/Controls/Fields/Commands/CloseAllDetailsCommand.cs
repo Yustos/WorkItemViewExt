@@ -5,15 +5,15 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace YL.Timeline.Interaction
+namespace YL.Timeline.Controls.Fields.Commands
 {
-	public class LoaderCommand : ICommand
+	public class CloseAllDetailsCommand : ICommand
 	{
-		private readonly RevisionLoader.LoadInfoDelegate _loader;
+		private readonly Action _action;
 
-		public LoaderCommand(RevisionLoader.LoadInfoDelegate loader)
+		public CloseAllDetailsCommand(Action action)
 		{
-			_loader = loader;
+			_action = action;
 		}
 
 		public bool CanExecute(object parameter)
@@ -25,12 +25,7 @@ namespace YL.Timeline.Interaction
 
 		public void Execute(object parameter)
 		{
-			
-		}
-
-		public RevisionChanges LoadInfo(int id, int rev)
-		{
-			return _loader(id, rev);
+			_action();
 		}
 	}
 }

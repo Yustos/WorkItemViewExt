@@ -22,7 +22,7 @@ namespace YL.WorkItemViewExt.WorkItemTimeline.Controls
 
 			var context = ((ITeamFoundationContextManager)GetService(typeof(ITeamFoundationContextManager))).CurrentContext;
 			_model = new TimelineModel(new TimelineService(context, (message) => OutputWindowHelper.OutputString(this, message)));
-			base.Content = new ControlTimeline(_model);
+			base.Content = new TimelineWrapper(_model, (message) => OutputWindowHelper.OutputString(this, message));
 		}
 
 		internal void AddWorkItems(WorkItem[] workItems)

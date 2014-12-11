@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,32 +17,12 @@ using YL.Timeline.Controls.Behind;
 using YL.Timeline.Controls.Fields.Converters;
 using YL.Timeline.Controls.MainRegion;
 using YL.Timeline.Entities;
-using YL.Timeline.Interaction;
+using YL.Timeline.Entities.RecordDetails;
 
 namespace YL.Timeline.Controls.Fields
 {
 	public class ControlRevisionView : DockPanel
 	{
-		private static LoaderCommand _loader;
-
-		public static readonly DependencyProperty InfoLoaderCommandProperty = DependencyProperty.RegisterAttached(
-			"InfoLoaderCommand",
-			typeof(LoaderCommand),
-			typeof(ControlRevisionView),
-			new FrameworkPropertyMetadata(null, (d, doa) =>
-			{
-				_loader = (LoaderCommand)doa.NewValue;
-			})
-		);
-		public static void SetInfoLoaderCommand(UIElement element, LoaderCommand value)
-		{
-			element.SetValue(InfoLoaderCommandProperty, value);
-		}
-		public static LoaderCommand GetInfoLoaderCommand(UIElement element)
-		{
-			return (LoaderCommand)element.GetValue(InfoLoaderCommandProperty);
-		}
-
 		public static readonly DependencyProperty TitleProperty = DependencyProperty.Register(
 			"Title",
 			typeof(string),
@@ -66,7 +50,7 @@ namespace YL.Timeline.Controls.Fields
 			{
 				var host = (ControlRevisionView)d;
 				var onlyChanged = (bool)doe.NewValue;
-				host._fieldsGrid.ItemsSource = host._changes.Fields.Where(f => !onlyChanged || !string.Equals(Convert.ToString(f.OriginalValue), Convert.ToString(f.Value))).ToArray();
+				host.ApplyFilter(onlyChanged);
 			})
 		);
 
@@ -83,17 +67,10 @@ namespace YL.Timeline.Controls.Fields
 		}
 
 		private static readonly Style HeaderStyle = new Style(typeof(DataGridColumnHeader));
-		
 
 		private readonly DataGrid _fieldsGrid = new DataGrid { AutoGenerateColumns = false, HeadersVisibility = DataGridHeadersVisibility.Column, IsReadOnly = true };
 		private readonly DataGrid _attachmentsGrid = new DataGrid { AutoGenerateColumns = false, HeadersVisibility = DataGridHeadersVisibility.Column, IsReadOnly = true };
 		private readonly DataGrid _changesetsGrid = new DataGrid { AutoGenerateColumns = false, HeadersVisibility = DataGridHeadersVisibility.Column, IsReadOnly = true };
-
-		private static AdornerLayer _layer;
-
-		private SelectionLinkAdorner _adorner;
-
-		private RevisionChanges _changes;
 
 		static ControlRevisionView()
 		{
@@ -128,7 +105,7 @@ namespace YL.Timeline.Controls.Fields
 			title.Children.Add(titleText);
 
 			var closeTextBox = new TextBlock() { Text = "x", Margin = new Thickness(0, 0, 0, 8) };
-			closeTextBox.MouseLeftButtonUp += closeTextBox_MouseLeftButtonUp;
+			closeTextBox.MouseLeftButtonUp += CloseTextBoxMouseLeftButtonUp;
 			DockPanel.SetDock(closeTextBox, Dock.Right);
 			title.Children.Add(closeTextBox);
 
@@ -187,48 +164,65 @@ namespace YL.Timeline.Controls.Fields
 			_fieldsGrid.Columns.Add(new DataGridTextColumn { Header = "Name", Binding = new Binding("Name"), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
 			_fieldsGrid.Columns.Add(new DataGridTextColumn { Header = "Original", Binding = new Binding("OriginalValue"), Width = 64 });
 			_fieldsGrid.Columns.Add(new DataGridTextColumn { Header = "Value", Binding = new Binding("Value"), Width = 64 });
-			_fieldsGrid.LoadingRow += _fieldsGrid_LoadingRow;
+			_fieldsGrid.LoadingRow += FieldsGridLoadingRow;
 			Children.Add(_fieldsGrid);
 
 			Loaded += ControlRevisionView_Loaded;
-			Unloaded += ControlRevisionView_Unloaded;
 		}
 
-		void _fieldsGrid_LoadingRow(object sender, DataGridRowEventArgs e)
+		private void FieldsGridLoadingRow(object sender, DataGridRowEventArgs e)
 		{
 			var field = (Field)e.Row.DataContext;
 			e.Row.FontWeight = string.Equals(Convert.ToString(field.OriginalValue), Convert.ToString(field.Value)) ? FontWeights.Normal : FontWeights.Bold;
 		}
 
-		void closeTextBox_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+		private void CloseTextBoxMouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
 		{
-			var recordControl = (ControlRecord)DataContext;
-			var container = Helpers.FindParent<ControlItems>(recordControl);
-			container.ToggleSelectedRecord(recordControl);
+			var parent = Helpers.FindParent<ControlRevisionsView>(this);
+			var list = (IList)parent.ItemsSource;
+			list.Remove(DataContext);
 		}
 
 		private void ControlRevisionView_Loaded(object sender, RoutedEventArgs e)
 		{
-			var recordControl = (ControlRecord)DataContext;
-			if (_layer == null)
-			{
-				//_layer = AdornerLayer.GetAdornerLayer(Helpers.FindParent<ControlRevisionsView>(this));
-				_layer = AdornerLayer.GetAdornerLayer(Helpers.FindParent<ControlItems>(recordControl));
-			}
-			_adorner = new SelectionLinkAdorner(recordControl, this);
-			_layer.Add(_adorner);
-			
-			var record = (Record)recordControl.DataContext;
+			var record = (Record)DataContext;
 			Title = string.Format("{0} [{1}]", record.Owner.Id, record.Rev);
-			_changes = _loader.LoadInfo(record.Owner.Id, record.Rev);
-			_fieldsGrid.ItemsSource = _changes.Fields;
-			_attachmentsGrid.ItemsSource = _changes.Attachments;
-			_changesetsGrid.ItemsSource = _changes.Changesets;
+			var controller = ControlRevisionsView.GetController(this);
+			Task.Factory.StartNew(() =>
+				{
+					record.EnsureDetails();
+				}).
+				ContinueWith(r => {
+					if (r.Exception == null)
+					{
+						Dispatcher.Invoke(
+							() =>
+							{
+								_fieldsGrid.ItemsSource = record.Details.Fields;
+								_attachmentsGrid.ItemsSource = record.Details.Attachments;
+								_changesetsGrid.ItemsSource = record.Details.Changesets;
+
+								ApplyFilter(OnlyChanged);
+							});
+					}
+					else
+					{
+						Dispatcher.Invoke(() => controller.Log(Convert.ToString(r.Exception)));
+					}
+				});
 		}
 
-		private void ControlRevisionView_Unloaded(object sender, RoutedEventArgs e)
+		private void ApplyFilter(bool onlyChanged)
 		{
-			_layer.Remove(_adorner);
+			ICollectionView view = CollectionViewSource.GetDefaultView(_fieldsGrid.ItemsSource);
+			if (view != null)
+			{
+				view.Filter = (a) =>
+				{
+					var f = (Field)a;
+					return !onlyChanged || !string.Equals(Convert.ToString(f.OriginalValue), Convert.ToString(f.Value));
+				};
+			}
 		}
 	}
 }
