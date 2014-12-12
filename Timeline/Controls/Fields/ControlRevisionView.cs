@@ -13,6 +13,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using YL.Timeline.Controls.Behind;
 using YL.Timeline.Controls.Fields.Converters;
 using YL.Timeline.Controls.MainRegion;
@@ -23,6 +24,8 @@ namespace YL.Timeline.Controls.Fields
 {
 	public class ControlRevisionView : DockPanel
 	{
+		private static readonly BitmapSource _closeSource = Properties.Resources.Close.ToSource();
+
 		public static readonly DependencyProperty TitleProperty = DependencyProperty.Register(
 			"Title",
 			typeof(string),
@@ -100,14 +103,10 @@ namespace YL.Timeline.Controls.Fields
 			filterCheckBox.SetBinding(CheckBox.IsCheckedProperty, new Binding("OnlyChanged") { Source = this });
 			title.Children.Add(filterCheckBox);
 
-			var titleText = new TextBlock();
-			titleText.Text = "Fields: ";
-			title.Children.Add(titleText);
-
-			var closeTextBox = new TextBlock() { Text = "x", Margin = new Thickness(0, 0, 0, 8) };
-			closeTextBox.MouseLeftButtonUp += CloseTextBoxMouseLeftButtonUp;
-			DockPanel.SetDock(closeTextBox, Dock.Right);
-			title.Children.Add(closeTextBox);
+			var closeButton = new Button { Content = new Image() { Source = _closeSource, Height=12, Width=13 }, Margin = new Thickness(0, 0, 0, 0) };
+			closeButton.Click += CloseButtonClick;
+			DockPanel.SetDock(closeButton, Dock.Right);
+			title.Children.Add(closeButton);
 
 			var titleTextBox = new TextBlock();
 			titleTextBox.SetBinding(TextBlock.TextProperty, new Binding("Title") { Source = this });
@@ -126,7 +125,17 @@ namespace YL.Timeline.Controls.Fields
 					VisualTree = attachmentsImgFactory
 				}});
 
-			_attachmentsGrid.Columns.Add(new DataGridTextColumn { Header = "Name", Binding = new Binding("Name"), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
+			var attachmentsLinkStyle = new Style(typeof(TextBlock));
+			attachmentsLinkStyle.Setters.Add(new EventSetter(Hyperlink.ClickEvent, (RoutedEventHandler)AttachmentEventSetterOnHandler));
+			attachmentsLinkStyle.Setters.Add(new Setter(TextBlock.ToolTipProperty, new Binding("Uri")));
+			_attachmentsGrid.Columns.Add(new DataGridHyperlinkColumn
+			{
+				Header = "Name",
+				Binding = new Binding("Name"),
+				Width = new DataGridLength(1, DataGridLengthUnitType.Star),
+				ElementStyle = attachmentsLinkStyle
+			});
+
 			DockPanel.SetDock(_attachmentsGrid, Dock.Bottom);
 			Children.Add(_attachmentsGrid);
 			var attachmentsTitle = new TextBlock { Text = "Attachments" };
@@ -147,13 +156,17 @@ namespace YL.Timeline.Controls.Fields
 				}
 			});
 
-			_changesetsGrid.Columns.Add(new DataGridHyperlinkColumn { 
-				Header = "Uri", 
-				Binding = new Binding("Uri"),
-				ContentBinding = new Binding("Uri"),
+			var changesetLinkStyle = new Style(typeof(TextBlock));
+			changesetLinkStyle.Setters.Add(new EventSetter(Hyperlink.ClickEvent, (RoutedEventHandler)ChangesetEventSetterOnHandler));
+			changesetLinkStyle.Setters.Add(new Setter(TextBlock.ToolTipProperty, new Binding("Uri")));
+
+			_changesetsGrid.Columns.Add(new DataGridHyperlinkColumn
+			{
+				Header = "Comment",
+				Binding = new Binding("Comment"),
 				Width = new DataGridLength(1, DataGridLengthUnitType.Star),
+				ElementStyle = changesetLinkStyle
 			});
-			_changesetsGrid.Columns.Add(new DataGridTextColumn { Header = "Comment", Binding = new Binding("Comment"), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
 			DockPanel.SetDock(_changesetsGrid, Dock.Bottom);
 			Children.Add(_changesetsGrid);
 			var changesetsTitle = new TextBlock { Text = "Changesets" };
@@ -170,23 +183,36 @@ namespace YL.Timeline.Controls.Fields
 			Loaded += ControlRevisionView_Loaded;
 		}
 
-		private void FieldsGridLoadingRow(object sender, DataGridRowEventArgs e)
+		private void ChangesetEventSetterOnHandler(object sender, RoutedEventArgs e)
 		{
-			var field = (Field)e.Row.DataContext;
-			e.Row.FontWeight = string.Equals(Convert.ToString(field.OriginalValue), Convert.ToString(field.Value)) ? FontWeights.Normal : FontWeights.Bold;
+			var changeset = (Changeset)((Hyperlink)e.OriginalSource).DataContext;
+			var controller = ControlRevisionsView.GetController(this);
+			controller.ShowChangeset(changeset.Id);
 		}
 
-		private void CloseTextBoxMouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+		private void AttachmentEventSetterOnHandler(object sender, RoutedEventArgs e)
+		{
+			var attachment = (Attachment)((Hyperlink)e.OriginalSource).DataContext;
+			Process.Start(attachment.Uri.ToString());
+		}
+
+		private void CloseButtonClick(object sender, RoutedEventArgs e)
 		{
 			var parent = Helpers.FindParent<ControlRevisionsView>(this);
 			var list = (IList)parent.ItemsSource;
 			list.Remove(DataContext);
 		}
 
+		private void FieldsGridLoadingRow(object sender, DataGridRowEventArgs e)
+		{
+			var field = (Field)e.Row.DataContext;
+			e.Row.FontWeight = string.Equals(Convert.ToString(field.OriginalValue), Convert.ToString(field.Value)) ? FontWeights.Normal : FontWeights.Bold;
+		}
+
 		private void ControlRevisionView_Loaded(object sender, RoutedEventArgs e)
 		{
 			var record = (Record)DataContext;
-			Title = string.Format("{0} [{1}]", record.Owner.Id, record.Rev);
+			Title = string.Format("Id: {0}, Rev: {1}", record.Owner.Id, record.Rev);
 			var controller = ControlRevisionsView.GetController(this);
 			Task.Factory.StartNew(() =>
 				{

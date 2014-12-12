@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using YL.Timeline.Controls.Behind;
 using YL.Timeline.Entities;
 using YL.Timeline.Entities.RecordDetails;
 
@@ -32,7 +33,7 @@ namespace YL.Timeline.Shell
 			InitializeComponent();
 			_loader = new Record.LoadDetailsDelegate((r) =>
 			{
-				Thread.Sleep(10000);
+				Thread.Sleep(2000);
 				return new RevisionChanges
 				{
 					Fields = new[]
@@ -55,6 +56,7 @@ namespace YL.Timeline.Shell
 					{
 						new Changeset
 						{
+							Id = 5,
 							Uri = new Uri("http://localhost/changeset/id"),
 							IsAdded = true,
 							Comment= "TestCS"
@@ -62,6 +64,12 @@ namespace YL.Timeline.Shell
 					}
 				};
 			});
+
+			var controller = (ViewportController)Resources["controller"];
+			controller.ShowChangeset = (id) =>
+			{
+				MessageBox.Show(this, id.ToString());
+			};
 			var items = GetData(_offset);
 			DataContext = new DataModel(items);
 		}
@@ -128,7 +136,16 @@ namespace YL.Timeline.Shell
 					new Record(item5, _loader) { Rev = 2, Date = DateTime.Now.AddDays(-2), State = offset % 2 == 0 ? "Resolved" : "Active", },
 					new Record(item5, _loader) { Rev = 3, Date = DateTime.Now.AddDays(-1), State = "Resolved", }
 				};
-			
+
+			/*var seqItem = new Item { Id = offset + 25, Title = "Test seq " + (offset + 25) };
+			var seqItemRecords = new List<Record>();
+			var seqCnt = 40;
+			for (var i = 0; i < seqCnt; i+=4)
+			{
+				seqItemRecords.Add(new Record(seqItem, _loader) { Rev = i, Date = DateTime.Now.AddDays(-(seqCnt-i)), State = "Proposed" });
+			}
+			seqItem.Records = seqItemRecords.ToArray();*/
+
 			return new[] { item, item2, item3, item4, item5 };
 		}
 

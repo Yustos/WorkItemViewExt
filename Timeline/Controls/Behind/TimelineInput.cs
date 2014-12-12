@@ -40,6 +40,9 @@ namespace YL.Timeline.Controls.Behind
 
 		private void UpdateStatValues()
 		{
+			Min = DateTime.MaxValue;
+			Max = DateTime.MinValue;
+
 			foreach (var item in Items)
 			{
 				foreach (var record in item.Records)

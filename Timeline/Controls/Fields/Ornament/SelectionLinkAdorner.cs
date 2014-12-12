@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Media;
+using YL.Timeline.Controls.Behind;
 using YL.Timeline.Entities;
 
 namespace YL.Timeline.Controls.Fields.Ornament
@@ -17,7 +18,6 @@ namespace YL.Timeline.Controls.Fields.Ornament
 
 		private readonly UIElement _from;
 		private readonly UIElement _to;
-
 
 		public static readonly DependencyProperty InvalidateIsVisibleProperty = DependencyProperty.Register(
 			"InvalidateIsVisible",
@@ -38,10 +38,10 @@ namespace YL.Timeline.Controls.Fields.Ornament
 			}
 		}
 
-
 		public SelectionLinkAdorner(UIElement adornedElement, UIElement from, UIElement to)
 			: base(adornedElement)
 		{
+			IsClipEnabled = true;
 			_from = from;
 			_to = to;
 			SetBinding(InvalidateIsVisibleProperty, new Binding("IsVisible") { Source = _from });

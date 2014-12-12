@@ -57,6 +57,7 @@
       <EmbedInteropTypes>true</EmbedInteropTypes>
     </Reference>
     <Reference Include="Microsoft.VisualStudio.TeamFoundation.WorkItemTracking, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.TeamFoundation.VersionControl, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.VisualStudio.Services.Integration, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.VisualStudio.TextManager.Interop" />
     <Reference Include="Microsoft.VisualStudio.Shell.12.0" />
@@ -142,6 +143,7 @@
   <ItemGroup>
     <Compile Include="Guids.cs" />
     <Compile Include="Helpers\ProgressBar.cs" />
+    <Compile Include="Helpers\SourceControlHelper.cs" />
     <Compile Include="Helpers\WorkItemHelper.cs" />
     <Compile Include="IWorkItemViewExtCommand.cs" />
     <Compile Include="Resources.Designer.cs">
@@ -153,6 +155,7 @@
     <Compile Include="WorkItemTimeline\Controls\TimelineModel.cs" />
     <Compile Include="WorkItemTimeline\Controls\TimelineWrapper.cs" />
     <Compile Include="WorkItemTimeline\TimelineService.cs" />
+    <Compile Include="WorkItemTimeline\WorkItemEqualityComparer.cs" />
     <Compile Include="WorkItemTimeline\WorkItemTimelineCommand.cs" />
     <Compile Include="WorkItemViewExtCommands.cs" />
     <Compile Include="WorkItemRelations\Entities\GraphLink.cs" />

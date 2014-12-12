@@ -18,6 +18,8 @@ namespace YL.Timeline.Controls.Fields.Ornament
 {
 	public class SelectionDecorator : Decorator
 	{
+		public static readonly DependencyProperty ControllerProperty = ControlTimeLine.ControllerProperty.AddOwner(typeof(SelectionDecorator));
+
 		public static readonly DependencyProperty SelectedItemsProperty =
 			DependencyProperty.Register("SelectedItems", typeof(ObservableCollection<Record>),
 			typeof(SelectionDecorator),
@@ -25,7 +27,7 @@ namespace YL.Timeline.Controls.Fields.Ornament
 				{
 					var collection = (ObservableCollection<Record>)doa.NewValue;
 					var host = (SelectionDecorator)d;
-					collection.CollectionChanged += host.collection_CollectionChanged;
+					collection.CollectionChanged += (s, o) => host.Update();
 				}));
 
 		public ObservableCollection<Record> SelectedItems
@@ -40,9 +42,56 @@ namespace YL.Timeline.Controls.Fields.Ornament
 			}
 		}
 
-		private void collection_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		public static readonly DependencyProperty ScaleProperty =
+			DependencyProperty.Register("Scale", typeof(double),
+			typeof(SelectionDecorator),
+			new FrameworkPropertyMetadata(1.0,
+				(d, doa) =>
+				{
+					var host = (SelectionDecorator)d;
+					host.Update();
+				}));
+
+		public static readonly DependencyProperty StartProperty =
+			DependencyProperty.Register("Start", typeof(double),
+			typeof(SelectionDecorator),
+			new FrameworkPropertyMetadata(0.0, 
+				(d, doa) =>
+				{
+					var host = (SelectionDecorator)d;
+					host.Update();
+				}));
+
+		public SelectionDecorator()
 		{
-			Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, new Action(() => UpdateAdorners()));
+			ClipToBounds = true;
+			Loaded += SelectionDecoratorLoaded;
+		}
+
+		internal void Update()
+		{
+			var controller = (ViewportController)(GetValue(ControllerProperty));
+			Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, new Action(() => 
+				{
+					try
+					{
+						UpdateAdorners();
+					}
+					catch (Exception ex)
+					{
+						controller.Log(ex.Message);
+					}
+				}));
+		}
+
+		private void SelectionDecoratorLoaded(object sender, RoutedEventArgs e)
+		{
+			var controller = (ViewportController)(GetValue(ControllerProperty));
+			if (controller != null)
+			{
+				SetBinding(StartProperty, new Binding("Start") { Source = controller });
+				SetBinding(ScaleProperty, new Binding("Scale") { Source = controller });
+			}
 		}
 
 		private void UpdateAdorners()
@@ -66,8 +115,6 @@ namespace YL.Timeline.Controls.Fields.Ornament
 				var linkAdorner = new SelectionLinkAdorner(this, link.Record, link.Detail);
 				adornerLayer.Add(linkAdorner);
 			}
-
-			Console.WriteLine("{0} - {1}", records.Count, details.Count);
 		}
 	}
 }

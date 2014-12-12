@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using YL.WorkItemViewExt.Helpers;
 
 namespace YL.WorkItemViewExt.WorkItemTimeline.Controls
 {
@@ -22,7 +23,12 @@ namespace YL.WorkItemViewExt.WorkItemTimeline.Controls
 
 			var context = ((ITeamFoundationContextManager)GetService(typeof(ITeamFoundationContextManager))).CurrentContext;
 			_model = new TimelineModel(new TimelineService(context, (message) => OutputWindowHelper.OutputString(this, message)));
-			base.Content = new TimelineWrapper(_model, (message) => OutputWindowHelper.OutputString(this, message));
+			base.Content = new TimelineWrapper(_model,
+				(message) => OutputWindowHelper.OutputString(this, message),
+				(id) => { 
+					var dte = (EnvDTE.DTE)GetService(typeof(EnvDTE.DTE));
+					SourceControlHelper.ShowChangeset(dte, id);
+				});
 		}
 
 		internal void AddWorkItems(WorkItem[] workItems)

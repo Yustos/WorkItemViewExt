@@ -7,11 +7,11 @@ using System.Windows.Input;
 
 namespace YL.Timeline.Controls.Fields.Commands
 {
-	public class CloseAllDetailsCommand : ICommand
+	public class DelegateCommand : ICommand
 	{
 		private readonly Action _action;
 
-		public CloseAllDetailsCommand(Action action)
+		public DelegateCommand(Action action)
 		{
 			_action = action;
 		}

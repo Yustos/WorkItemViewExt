@@ -158,10 +158,15 @@ namespace YL.Timeline.Controls.ThumbRegion
 			}
 
 			// Date markers
+			var textMeasure = new FormattedText(DateTime.Now.ToShortDateString(),
+					CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
+					_typeface, FontSize, Brushes.Gray);
+			var dayStep = Math.Max(1, Controller.DayStep(textMeasure.Width + 10, Controller.ViewportWidth));
+
 			double lastPos = 0;
 			FormattedText text = null;
 			int day = -1;
-			for (var start = Controller.Input.Min.Date; start <= Controller.Input.Max; start = start.AddDays(1))
+			for (var start = Controller.Input.Min.Date; start <= Controller.Input.Max; start = start.AddDays(dayStep))
 			{
 				var pos = Controller.Interpolate(start);
 				drawingContext.DrawLine(new Pen(new SolidColorBrush(Color.FromArgb(127,127,127,127)), 1),

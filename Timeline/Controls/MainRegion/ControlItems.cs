@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -113,10 +114,17 @@ namespace YL.Timeline.Controls.MainRegion
 		protected override void OnRender(DrawingContext drawingContext)
 		{
 			var controller = Controller;
-			for (var start = controller.Input.Min.Date; start <= controller.Input.Max; start = start.AddDays(1))
+			
+			var typeface = new Typeface(FontFamily, FontStyle, FontWeight, FontStretch);
+			var textMeasure = new FormattedText(DateTime.Now.ToShortDateString(),
+					CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
+					typeface, FontSize, Brushes.Gray);
+			var dayStep = Math.Max(1, Controller.DayStep(textMeasure.Width, ActualWidth - 2));
+
+			for (var start = controller.Input.Min.Date; start <= controller.Input.Max; start = start.AddDays(dayStep))
 			{
 				var pos = controller.Interpolate(start, ActualWidth - 2);
-				drawingContext.DrawLine(new Pen(new SolidColorBrush(Color.FromArgb(127, 127, 127, 127)), 1),
+				drawingContext.DrawLine(new Pen(new SolidColorBrush(Color.FromArgb(90, 127, 127, 127)), 1),
 					new Point(pos, 0),
 					new Point(pos, ActualHeight));
 			}

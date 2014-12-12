@@ -12,7 +12,7 @@
 	<UserControl.Resources>
 		<controller:ViewportController x:Key="controller"></controller:ViewportController>
 	</UserControl.Resources>
-	<fieldsDecorator:SelectionDecorator SelectedItems="{Binding Source={StaticResource controller}, Path=Selection}" Grid.Row="1">
+	<fieldsDecorator:SelectionDecorator SelectedItems="{Binding Source={StaticResource controller}, Path=Selection}" timeline:ControlTimeLine.Controller="{StaticResource controller}" Grid.Row="1">
 		<Grid>
 			<Grid.RowDefinitions>
 				<RowDefinition Height="*"></RowDefinition>

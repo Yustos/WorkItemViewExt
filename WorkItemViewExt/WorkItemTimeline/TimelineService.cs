@@ -1,4 +1,5 @@
-﻿using Microsoft.TeamFoundation.Client;
+﻿using Microsoft.TeamFoundation;
+using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.WorkItemTracking.Client;
 using Microsoft.VisualStudio.Services.Integration;
 using System;
@@ -52,9 +53,9 @@ namespace YL.WorkItemViewExt.WorkItemTimeline
 				var prevChangesets = new HashSet<string>(prevRevision.Links.OfType<ExternalLink>().Select(a => a.LinkedArtifactUri));
 				var currentChangesets = new HashSet<string>(revision.Links.OfType<ExternalLink>().Select(a => a.LinkedArtifactUri));
 				var changesets = revision.Links.OfType<ExternalLink>().
-					Select(a => new Details.Changeset { IsAdded = prevChangesets.Contains(a.LinkedArtifactUri) ? null : (bool?)true, Uri = new Uri(a.LinkedArtifactUri), Comment = a.Comment }).ToList();
+					Select(a => MapChangeset(a, prevChangesets.Contains(a.LinkedArtifactUri) ? null : (bool?)true)).ToList();
 				changesets.AddRange(prevRevision.Links.OfType<ExternalLink>().Where(a => !currentChangesets.Contains(a.LinkedArtifactUri)).
-					Select(a => new Details.Changeset { IsAdded = false, Uri = new Uri(a.LinkedArtifactUri), Comment = a.Comment }));
+					Select(a => MapChangeset(a, false)));
 				result.Changesets = changesets.ToArray();
 			}
 			else
@@ -62,7 +63,7 @@ namespace YL.WorkItemViewExt.WorkItemTimeline
 				result.Attachments = revision.Attachments.OfType<Attachment>().
 					Select(a => new Details.Attachment { IsAdded = true, Uri = a.Uri, Name = a.Name }).ToArray();
 				result.Changesets = revision.Links.OfType<ExternalLink>().
-					Select(l => new Details.Changeset { IsAdded = true, Uri = new Uri(l.LinkedArtifactUri), Comment = l.Comment }).ToArray();
+					Select(l => MapChangeset(l, true)).ToArray();
 			}
 
 			return result;
@@ -87,7 +88,7 @@ namespace YL.WorkItemViewExt.WorkItemTimeline
 			{
 				return GetChanges(r.Owner.Id, r.Rev);
 			});
-			var items = new Dictionary<WorkItem, Item>();
+			var items = new Dictionary<WorkItem, Item>(new WorkItemEqualityComparer());
 			foreach (var workItem in workItems)
 			{
 				items.Add(workItem, MapItem(workItem, loader));
@@ -213,18 +214,48 @@ namespace YL.WorkItemViewExt.WorkItemTimeline
 				Id = workItem.Id,
 				Title = workItem.Title
 			};
-			item.Records = workItem.Revisions.Cast<Revision>().Select(r => MapRecord(r, item, loader)).ToArray();
+			var records = new List<Record>();
+			Revision prev = null;
+			foreach (Revision r in workItem.Revisions)
+			{
+				records.Add(MapRecord(r, prev, item, loader));
+				prev = r;
+			}
+			item.Records = records.ToArray();
 			return item;
 		}
 
-		private Record MapRecord(Revision r, Item owner, Record.LoadDetailsDelegate loader)
+		private Record MapRecord(Revision r, Revision prev, Item owner, Record.LoadDetailsDelegate loader)
 		{
+			var prevChangesetHash = new HashSet<string>(prev == null ? Enumerable.Empty<string>() : prev.Links.OfType<ExternalLink>().Select(a => a.LinkedArtifactUri));
+			var prevAttachmentsHash = new HashSet<int>(prev == null ? Enumerable.Empty<int>() : prev.Attachments.OfType<Attachment>().Select(a => a.Id));
+			var changesetHash = new HashSet<string>(r.Links.OfType<ExternalLink>().Select(a => a.LinkedArtifactUri));
+			var attachmentsHash = new HashSet<int>(r.Attachments.OfType<Attachment>().Select(a => a.Id));
+
 			return new Record(owner, loader)
 			{
 				Rev = Convert.ToInt32(r.Fields[CoreField.Rev].Value),
 				Date = Convert.ToDateTime(r.Fields[CoreField.ChangedDate].Value),
-				State = Convert.ToString(r.Fields[CoreField.State].Value)
+				State = Convert.ToString(r.Fields[CoreField.State].Value),
+				AddedAttachments = attachmentsHash.Except(prevAttachmentsHash).Count(),
+				RemovedAttachments = prevAttachmentsHash.Except(attachmentsHash).Count(),
+				AddedChangesets = changesetHash.Except(prevChangesetHash).Count(),
+				RemovedChangesets = prevChangesetHash.Except(changesetHash).Count(),
 			};
+		}
+
+		private Details.Changeset MapChangeset(ExternalLink link, bool? isAdded)
+		{
+			ArtifactId artifactId = LinkingUtilities.DecodeUri(link.LinkedArtifactUri);
+			var id = int.Parse(artifactId.ToolSpecificId);
+
+			return new Details.Changeset
+				{
+					Id = id,
+					IsAdded = isAdded,
+					Uri = new Uri(link.LinkedArtifactUri),
+					Comment = link.Comment
+				};
 		}
 	}
 }

@@ -24,6 +24,8 @@ namespace YL.Timeline.Controls.Behind
 
 		public Action<string> Logger { get; set; }
 
+		public Action<int> ShowChangeset { get; set; }
+
 		public double Scale
 		{
 			get
@@ -116,6 +118,7 @@ namespace YL.Timeline.Controls.Behind
 					if (e.PropertyName == "Items")
 					{
 						UpdateAggregatedPositions();
+						Selection.Clear();
 					}
 				};
 		}
@@ -133,6 +136,13 @@ namespace YL.Timeline.Controls.Behind
 			var step = viewportWidth / (_input.Max.Ticks - _input.Min.Ticks);
 			var startPos = viewportWidth * Start;
 			return (step * (date.Ticks - _input.Min.Ticks) - startPos) * Scale;
+		}
+
+		internal int DayStep(double textWidth, double viewportWidth)
+		{
+			var stepPerSeparator = viewportWidth / (Input.Range.TotalDays * textWidth);
+			var dayStep = (int)Math.Ceiling(1 / stepPerSeparator);
+			return dayStep;
 		}
 
 		internal void Log(string message)

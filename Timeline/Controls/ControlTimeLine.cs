@@ -10,6 +10,7 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Media;
 using YL.Timeline.Controls.Behind;
+using YL.Timeline.Controls.Fields.Ornament;
 using YL.Timeline.Controls.MainRegion;
 using YL.Timeline.Controls.MainRegion.Ornament;
 using YL.Timeline.Controls.ThumbRegion;
@@ -99,11 +100,19 @@ namespace YL.Timeline.Controls
 
 			_linksDecorator.Child = _host;
 			scroll.Content = _linksDecorator;
-			
+
+			scroll.ScrollChanged += ScrollScrollChanged;
+
 			dock.Children.Add(scroll);
 
 			Content = dock;
 			Loaded += TimeLineLoaded;
+		}
+
+		private void ScrollScrollChanged(object sender, ScrollChangedEventArgs e)
+		{
+			var decorator = Helpers.FindParent<SelectionDecorator>(this);
+			decorator.Update();
 		}
 
 		private void TimeLineLoaded(object sender, RoutedEventArgs e)

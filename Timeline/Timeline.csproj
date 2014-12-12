@@ -69,7 +69,7 @@
     <Compile Include="Controls\Behind\Helpers.cs" />
     <Compile Include="Controls\Behind\TimelineInput.cs" />
     <Compile Include="Controls\Behind\ViewportController.cs" />
-    <Compile Include="Controls\Fields\Commands\CloseAllDetailsCommand.cs" />
+    <Compile Include="Controls\Fields\Commands\DelegateCommand.cs" />
     <Compile Include="Controls\Fields\ControlRevisionView.cs" />
     <Compile Include="Controls\Fields\ControlRevisionsView.cs" />
     <Compile Include="Controls\Fields\Converters\BoolToImageConverter.cs" />
@@ -138,7 +138,9 @@
   <ItemGroup>
     <None Include="Resources\ChangesetRemove.png" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="Resources\Close.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

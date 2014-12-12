@@ -56,11 +56,30 @@ namespace YL.Timeline.Controls.Fields
 			//ItemTemplate = new DataTemplate() { VisualTree = itemFactory };
 
 			var menu = new ContextMenu();
-			menu.Items.Add(new MenuItem { Header="Close all details", Command = new CloseAllDetailsCommand(() => {
-				var view = CollectionViewSource.GetDefaultView(ItemsSource);
-				var list = (IList)view.SourceCollection;
-				list.Clear();
-			}) });
+			var onlyChecked = new MenuItem
+			{
+				Header = "Only changed",
+				IsCheckable = true
+			};
+			onlyChecked.Command = new DelegateCommand(() =>
+				{
+					foreach (var kvp in _controlsCache)
+					{
+						kvp.Value.OnlyChanged = onlyChecked.IsChecked;
+					}
+				});
+			menu.Items.Add(onlyChecked);
+
+			menu.Items.Add(new MenuItem
+			{
+				Header = "Close all details",
+				Command = new DelegateCommand(() =>
+				{
+					var view = CollectionViewSource.GetDefaultView(ItemsSource);
+					var list = (IList)view.SourceCollection;
+					list.Clear();
+				})
+			});
 
 			ContextMenu = menu;
 		}
@@ -84,7 +103,7 @@ namespace YL.Timeline.Controls.Fields
 				base.PrepareContainerForItemOverride(element, item);
 				return;
 			}
-			
+
 			ControlRevisionView instance;
 			if (!_controlsCache.TryGetValue(record, out instance))
 			{

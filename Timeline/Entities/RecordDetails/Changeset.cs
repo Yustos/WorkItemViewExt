@@ -10,6 +10,8 @@ namespace YL.Timeline.Entities.RecordDetails
 	{
 		public bool? IsAdded { get; set; }
 
+		public int Id { get; set; }
+
 		public Uri Uri { get; set; }
 
 		public string Comment { get; set; }

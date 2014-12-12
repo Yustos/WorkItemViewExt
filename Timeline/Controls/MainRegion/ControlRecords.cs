@@ -108,8 +108,8 @@ namespace YL.Timeline.Controls
 			var result = base.ArrangeOverride(arrangeSize);
 
 #warning Not sure.
-			var layer = AdornerLayer.GetAdornerLayer(this);
-			layer.Update();
+			//var layer = AdornerLayer.GetAdornerLayer(this);
+			//layer.Update();
 
 			return result;
 		}

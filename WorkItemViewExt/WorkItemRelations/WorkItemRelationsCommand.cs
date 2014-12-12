@@ -1,5 +1,6 @@
 ﻿using Microsoft.TeamFoundation.WorkItemTracking.Client;
 using Microsoft.VisualStudio.Progression;
+using Microsoft.VisualStudio.Services.Integration;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,7 +23,7 @@ namespace YL.WorkItemViewExt.WorkItemRelations
 
 			var path = Path.Combine(Path.GetTempPath(), "WorkItems.dgml");
 			var existingRender = dte.ItemOperations.IsFileOpen(path);
-			var render = GetRender(dte, part, path,
+			var render = GetRender(serviceProvider, dte, part, path,
 				selectedWorkItems[0].Project.WorkItemTypes.Cast<WorkItemType>().Select(t => t.Name),
 				selectedWorkItems[0].Store.WorkItemLinkTypes.Select(l => l.ReferenceName));
 			if (existingRender)
@@ -59,7 +60,8 @@ namespace YL.WorkItemViewExt.WorkItemRelations
 				});
 		}
 
-		private GraphRender GetRender(EnvDTE.DTE dte, GraphPart part, string path, IEnumerable<string> nodeTypes, IEnumerable<string> linkTypes)
+		private GraphRender GetRender(IServiceProvider provider, EnvDTE.DTE dte,
+			GraphPart part, string path, IEnumerable<string> nodeTypes, IEnumerable<string> linkTypes)
 		{
 			var serializer = new GraphSerializer();
 			serializer.GenerateDGML(path, part, nodeTypes, linkTypes);
@@ -71,8 +73,14 @@ namespace YL.WorkItemViewExt.WorkItemRelations
 				throw new ApplicationException("Missing graph control automation.");
 			}
 
-#warning Suppress error
-			File.Delete(path);
+			try
+			{
+				File.Delete(path);
+			}
+			catch (Exception ex)
+			{
+				OutputWindowHelper.OutputString(provider, ex.Message);
+			}
 
 			var graph = automation.Graph;
 			return new GraphRender(graph);
