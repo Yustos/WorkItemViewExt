@@ -16,6 +16,8 @@ namespace YL.Timeline.Entities
 
 		public string State { get; set; }
 
+		public Field[] DisplayFields { get; set; }
+
 		public Record[] AddedLinks { get; set; }
 
 		public Record[] RemovedLinks { get; set; }

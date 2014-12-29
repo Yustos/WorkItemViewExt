@@ -16,6 +16,7 @@
 		</Grid.RowDefinitions>
 		<Menu>
 			<MenuItem Header="Change" Click="MenuItem_MouseUp"></MenuItem>
+			<MenuItem Header="Options" Click="MenuItem_Click"></MenuItem>
 		</Menu>
 		<fieldsDecorator:SelectionDecorator SelectedItems="{Binding Source={StaticResource controller}, Path=Selection}"  timeline:ControlTimeLine.Controller="{StaticResource controller}" Grid.Row="1">
 			<Grid>

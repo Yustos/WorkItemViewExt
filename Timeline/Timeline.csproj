@@ -94,6 +94,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Entities\RecordDetails\RevisionChanges.cs" />
+    <Compile Include="Forms\DisplayFieldsForm.xaml.cs">
+      <DependentUpon>DisplayFieldsForm.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\DisplayFieldsModel.cs" />
+    <Compile Include="Interfaces\IDataService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -140,6 +145,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Close.png" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Page Include="Forms\DisplayFieldsForm.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

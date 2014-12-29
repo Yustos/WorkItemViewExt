@@ -24,6 +24,7 @@ namespace YL.Timeline.Controls.Fields
 {
 	public class ControlRevisionView : DockPanel
 	{
+		private static readonly Brush _changedBrush = new SolidColorBrush(Color.FromArgb(255, 240, 255, 240));
 		private static readonly BitmapSource _closeSource = Properties.Resources.Close.ToSource();
 
 		public static readonly DependencyProperty TitleProperty = DependencyProperty.Register(
@@ -42,6 +43,25 @@ namespace YL.Timeline.Controls.Fields
 			set
 			{
 				SetValue(TitleProperty, value);
+			}
+		}
+
+		public static readonly DependencyProperty UserProperty = DependencyProperty.Register(
+			"User",
+			typeof(string),
+			typeof(ControlRevisionView),
+			new FrameworkPropertyMetadata(null)
+		);
+
+		public string User
+		{
+			get
+			{
+				return (string)GetValue(UserProperty);
+			}
+			set
+			{
+				SetValue(UserProperty, value);
 			}
 		}
 
@@ -113,6 +133,12 @@ namespace YL.Timeline.Controls.Fields
 			title.Children.Add(titleTextBox);
 			Children.Add(title);
 
+
+			var userTextBlock = new TextBlock();
+			userTextBlock.SetBinding(TextBlock.TextProperty, new Binding("User") { Source = this });
+			DockPanel.SetDock(userTextBlock, Dock.Top);
+			Children.Add(userTextBlock);
+
 			// Attachments
 			var attachmentsImgFactory = new FrameworkElementFactory(typeof(Image));
 			attachmentsImgFactory.SetValue(Image.SourceProperty, new Binding("IsAdded") { Converter = new BoolToImageConverter() });
@@ -174,7 +200,14 @@ namespace YL.Timeline.Controls.Fields
 			Children.Add(changesetsTitle);
 
 			// Fields
-			_fieldsGrid.Columns.Add(new DataGridTextColumn { Header = "Name", Binding = new Binding("Name"), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
+			var nameFieldStyle = new Style(typeof(TextBlock));
+			nameFieldStyle.Setters.Add(new EventSetter(Hyperlink.ClickEvent, (RoutedEventHandler)AttachmentEventSetterOnHandler));
+			nameFieldStyle.Setters.Add(new Setter(TextBlock.ToolTipProperty, new Binding("ReferenceName")));
+			_fieldsGrid.Columns.Add(new DataGridTextColumn { Header = "Name",
+				Binding = new Binding("Name"),
+				Width = new DataGridLength(1, DataGridLengthUnitType.Star),
+				ElementStyle = nameFieldStyle
+			});
 			_fieldsGrid.Columns.Add(new DataGridTextColumn { Header = "Original", Binding = new Binding("OriginalValue"), Width = 64 });
 			_fieldsGrid.Columns.Add(new DataGridTextColumn { Header = "Value", Binding = new Binding("Value"), Width = 64 });
 			_fieldsGrid.LoadingRow += FieldsGridLoadingRow;
@@ -206,7 +239,14 @@ namespace YL.Timeline.Controls.Fields
 		private void FieldsGridLoadingRow(object sender, DataGridRowEventArgs e)
 		{
 			var field = (Field)e.Row.DataContext;
-			e.Row.FontWeight = string.Equals(Convert.ToString(field.OriginalValue), Convert.ToString(field.Value)) ? FontWeights.Normal : FontWeights.Bold;
+			if (!string.Equals(Convert.ToString(field.OriginalValue), Convert.ToString(field.Value)))
+			{
+				e.Row.Background = _changedBrush;
+				if (field.IsChangedByUser)
+				{
+					e.Row.FontWeight = FontWeights.Bold;
+				}
+			}
 		}
 
 		private void ControlRevisionView_Loaded(object sender, RoutedEventArgs e)
@@ -224,6 +264,8 @@ namespace YL.Timeline.Controls.Fields
 						Dispatcher.Invoke(
 							() =>
 							{
+								User = record.Details.ChangedBy +
+									(record.Details.ChangedBy == record.Details.AuthorizedAs ? null : " via " + record.Details.AuthorizedAs);
 								_fieldsGrid.ItemsSource = record.Details.Fields;
 								_attachmentsGrid.ItemsSource = record.Details.Attachments;
 								_changesetsGrid.ItemsSource = record.Details.Changesets;

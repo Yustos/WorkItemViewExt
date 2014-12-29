@@ -6,6 +6,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using YL.Timeline.Controls.Behind;
@@ -85,12 +86,42 @@ namespace YL.Timeline.Controls
 				DockPanel.SetDock(grid, Dock.Right);
 			}
 
-			var tb = new TextBlock();
-			tb.Text = string.Format("[{0}] {1}\r\n{2}", record.Rev, record.State, record.Date);
-			DockPanel.SetDock(tb, Dock.Top);
-			dockPanel.Children.Add(tb);
+			var stack = new StackPanel();
 
-			
+			stack.Children.Add(new TextBlock
+			{
+				Text = string.Format("[{0}] {1}", record.Rev, record.Date),
+				ToolTip = string.Format("Work item: {1}{0}Revision #: {2}{0}Changed date: {3}", Environment.NewLine, record.Owner.Id, record.Rev, record.Date)
+			});
+			stack.Children.Add(new TextBlock { Text = record.State, ToolTip = "State" });
+
+
+			if (record.DisplayFields != null)
+			{
+				foreach (var field in record.DisplayFields)
+				{
+					var fieldBlock = new TextBlock();
+					fieldBlock.Inlines.Add(field.Name);
+					fieldBlock.Inlines.Add(": ");
+					fieldBlock.Inlines.Add(new Run(Convert.ToString(field.Value)) { FontWeight = FontWeights.Bold });
+
+					var tooltipBlock = new TextBlock();
+					tooltipBlock.Inlines.Add(field.ReferenceName);
+					tooltipBlock.Inlines.Add(": ");
+					tooltipBlock.Inlines.Add(new Run(Convert.ToString(field.OriginalValue)) { FontWeight = FontWeights.Bold });
+					tooltipBlock.Inlines.Add(" -> ");
+					tooltipBlock.Inlines.Add(new Run(Convert.ToString(field.Value)) { FontWeight = FontWeights.Bold });
+
+					fieldBlock.ToolTip = tooltipBlock;
+
+					stack.Children.Add(fieldBlock);
+				}
+				
+				//description += Environment.NewLine + string.Join(Environment.NewLine, record.DisplayFields);
+			}
+				
+			DockPanel.SetDock(stack, Dock.Top);
+			dockPanel.Children.Add(stack);
 
 			Child = dockPanel;
 		}

@@ -8,11 +8,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using YL.Timeline.Entities;
+using YL.Timeline.Interfaces;
 using Details = YL.Timeline.Entities.RecordDetails;
 
 namespace YL.WorkItemViewExt.WorkItemTimeline
 {
-	internal sealed class TimelineService
+	internal sealed class TimelineService : IDataService
 	{
 		private readonly ITeamFoundationContext _context;
 		private readonly Action<string> _logger;
@@ -35,8 +36,17 @@ namespace YL.WorkItemViewExt.WorkItemTimeline
 			{
 				return null;
 			}
+			result.ChangedBy = Convert.ToString(revision.Fields[CoreField.ChangedBy].Value);
+			result.AuthorizedAs = Convert.ToString(revision.Fields[CoreField.AuthorizedAs].Value);
 			result.Fields = revision.Fields.OfType<Field>().
-				Select(f => new Details.Field { Name = f.Name, OriginalValue = f.OriginalValue, Value = f.Value }).ToArray();
+				Select(f => new Details.Field
+				{
+					Name = f.Name,
+					ReferenceName = f.ReferenceName,
+					OriginalValue = f.OriginalValue,
+					Value = f.Value,
+					IsChangedByUser = !f.IsComputed || f.IsChangedByUser
+				}).ToArray();
 
 			var prevRevision = workItem.Revisions.OfType<Revision>().
 				FirstOrDefault(r => Convert.ToInt32(r.Fields[CoreField.Rev].Value) == rev - 1);
@@ -82,8 +92,12 @@ namespace YL.WorkItemViewExt.WorkItemTimeline
 				Select(f => new Details.Field { Name = f.Name, OriginalValue = f.OriginalValue, Value = f.Value }).ToArray();
 		}
 
-		internal Item[] GetItems(WorkItem[] workItems)
+		internal Item[] GetItems(WorkItem[] workItems, string[] displayFields)
 		{
+			if (workItems == null)
+			{
+				return null;
+			}
 			var loader = new Record.LoadDetailsDelegate((r) =>
 			{
 				return GetChanges(r.Owner.Id, r.Rev);
@@ -91,8 +105,8 @@ namespace YL.WorkItemViewExt.WorkItemTimeline
 			var items = new Dictionary<WorkItem, Item>(new WorkItemEqualityComparer());
 			foreach (var workItem in workItems)
 			{
-				items.Add(workItem, MapItem(workItem, loader));
-				foreach (var relatedItem in GetRelatedItems(workItem, loader))
+				items.Add(workItem, MapItem(workItem, displayFields, loader));
+				foreach (var relatedItem in GetRelatedItems(workItem, displayFields, loader))
 				{
 					items.Add(relatedItem.Item1, relatedItem.Item2);
 				}
@@ -101,11 +115,11 @@ namespace YL.WorkItemViewExt.WorkItemTimeline
 			return items.Values.ToArray();
 		}
 
-		private IEnumerable<Tuple<WorkItem, Item>> GetRelatedItems(WorkItem workItem, Record.LoadDetailsDelegate loader)
+		private IEnumerable<Tuple<WorkItem, Item>> GetRelatedItems(WorkItem workItem, string[] displayFields, Record.LoadDetailsDelegate loader)
 		{
 			return workItem.Links.OfType<RelatedLink>().
 				Select(l => workItem.Store.GetWorkItem(l.RelatedWorkItemId)).
-				Select(w => Tuple.Create(w, MapItem(w, loader)));
+				Select(w => Tuple.Create(w, MapItem(w, displayFields, loader)));
 		}
 
 		private void FillLinks(Dictionary<WorkItem, Item> items)
@@ -207,7 +221,7 @@ namespace YL.WorkItemViewExt.WorkItemTimeline
 			return Tuple.Create(sourceRev, targetRev);
 		}
 
-		private Item MapItem(WorkItem workItem, Record.LoadDetailsDelegate loader)
+		private Item MapItem(WorkItem workItem, string[] displayFields, Record.LoadDetailsDelegate loader)
 		{
 			var item = new Item
 			{
@@ -218,14 +232,15 @@ namespace YL.WorkItemViewExt.WorkItemTimeline
 			Revision prev = null;
 			foreach (Revision r in workItem.Revisions)
 			{
-				records.Add(MapRecord(r, prev, item, loader));
+				records.Add(MapRecord(r, prev, item, displayFields, loader));
 				prev = r;
 			}
 			item.Records = records.ToArray();
 			return item;
 		}
 
-		private Record MapRecord(Revision r, Revision prev, Item owner, Record.LoadDetailsDelegate loader)
+		private Record MapRecord(Revision r, Revision prev, Item owner,
+			string[] displayFields, Record.LoadDetailsDelegate loader)
 		{
 			var prevChangesetHash = new HashSet<string>(prev == null ? Enumerable.Empty<string>() : prev.Links.OfType<ExternalLink>().Select(a => a.LinkedArtifactUri));
 			var prevAttachmentsHash = new HashSet<int>(prev == null ? Enumerable.Empty<int>() : prev.Attachments.OfType<Attachment>().Select(a => a.Id));
@@ -241,6 +256,17 @@ namespace YL.WorkItemViewExt.WorkItemTimeline
 				RemovedAttachments = prevAttachmentsHash.Except(attachmentsHash).Count(),
 				AddedChangesets = changesetHash.Except(prevChangesetHash).Count(),
 				RemovedChangesets = prevChangesetHash.Except(changesetHash).Count(),
+				DisplayFields = displayFields == null
+					? null
+					: displayFields.Where(d => r.Fields.Contains(d)).
+					Select(d => r.Fields[d]).
+					Select(d => new Details.Field
+					{
+						Name = d.Name,
+						ReferenceName = d.ReferenceName,
+						OriginalValue = Convert.ToString(d.OriginalValue),
+						Value = Convert.ToString(d.Value)
+					}).ToArray()
 			};
 		}
 
@@ -256,6 +282,12 @@ namespace YL.WorkItemViewExt.WorkItemTimeline
 					Uri = new Uri(link.LinkedArtifactUri),
 					Comment = link.Comment
 				};
+		}
+
+		public string[] GetFields()
+		{
+			var store = _context.TeamProjectCollection.GetService<WorkItemStore>();
+			return store.FieldDefinitions.Cast<FieldDefinition>().Select(f => f.Name).ToArray();
 		}
 	}
 }

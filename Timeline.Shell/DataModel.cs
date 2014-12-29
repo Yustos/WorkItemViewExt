@@ -13,8 +13,10 @@ namespace YL.Timeline.Shell
 {
 	public class DataModel : INotifyPropertyChanged
 	{
-		private Item[] _items;
 		public event PropertyChangedEventHandler PropertyChanged;
+
+		private Item[] _items;
+		private string[] _displayFields;
 
 		public DataModel(Item[] items)
 		{
@@ -33,6 +35,22 @@ namespace YL.Timeline.Shell
 				if (PropertyChanged != null)
 				{
 					PropertyChanged(this, new PropertyChangedEventArgs("Items"));
+				}
+			}
+		}
+
+		public string[] DisplayFields
+		{
+			get
+			{
+				return _displayFields;
+			}
+			set
+			{
+				_displayFields = value;
+				if (PropertyChanged != null)
+				{
+					PropertyChanged(this, new PropertyChangedEventArgs("DisplayFields"));
 				}
 			}
 		}

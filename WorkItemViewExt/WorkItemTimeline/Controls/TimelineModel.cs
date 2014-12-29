@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using YL.Timeline.Controls;
 using YL.Timeline.Entities;
+using YL.Timeline.Interfaces;
 
 namespace YL.WorkItemViewExt.WorkItemTimeline.Controls
 {
@@ -17,6 +18,10 @@ namespace YL.WorkItemViewExt.WorkItemTimeline.Controls
 		private readonly TimelineService _service;
 
 		public event PropertyChangedEventHandler PropertyChanged;
+
+		private string[] _displayFields;
+
+		private WorkItem[] _workItems;
 
 		private Item[] _items;
 
@@ -33,6 +38,22 @@ namespace YL.WorkItemViewExt.WorkItemTimeline.Controls
 			}
 		}
 
+		internal string[] DisplayFields
+		{
+			get
+			{
+				return _displayFields;
+			}
+		}
+
+		internal IDataService Service
+		{
+			get
+			{
+				return _service;
+			}
+		}
+
 		internal TimelineModel(TimelineService service)
 		{
 			_service = service;
@@ -40,7 +61,19 @@ namespace YL.WorkItemViewExt.WorkItemTimeline.Controls
 
 		internal void AddWorkItems(WorkItem[] workItems)
 		{
-			Items = _service.GetItems(workItems);
+			_workItems = workItems;
+			RefreshItems();
+		}
+
+		internal void SetDisplayFields(string[] displayFields)
+		{
+			_displayFields = displayFields;
+			RefreshItems();
+		}
+
+		private void RefreshItems()
+		{
+			Items = _service.GetItems(_workItems, _displayFields);
 		}
 
 		private void OnPropertyChanged([CallerMemberName] string propertyName = null)

@@ -10,8 +10,12 @@ namespace YL.Timeline.Entities.RecordDetails
 	{
 		public string Name { get; set; }
 
+		public string ReferenceName { get; set; }
+
 		public object OriginalValue { get; set; }
 
 		public object Value { get; set; }
+
+		public bool IsChangedByUser { get; set; }
 	}
 }

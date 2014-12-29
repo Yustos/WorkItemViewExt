@@ -171,7 +171,7 @@ namespace YL.Timeline.Controls.MainRegion
 
 		private void ControlItemsMouseUp(object sender, MouseButtonEventArgs e)
 		{
-			var recordControl = Helpers.FindParent<ControlRecord>((DependencyObject)e.OriginalSource);
+			var recordControl = Helpers.FindParent<ControlRecord>((e.OriginalSource as Visual) ?? ((FrameworkContentElement)e.OriginalSource).Parent);
 			ToggleSelectedRecord(recordControl);
 		}
 

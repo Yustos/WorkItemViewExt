@@ -16,6 +16,7 @@ using System.Windows.Shapes;
 using YL.Timeline.Controls.Behind;
 using YL.Timeline.Entities;
 using YL.Timeline.Entities.RecordDetails;
+using YL.Timeline.Forms;
 
 namespace YL.Timeline.Shell
 {
@@ -36,12 +37,15 @@ namespace YL.Timeline.Shell
 				Thread.Sleep(2000);
 				return new RevisionChanges
 				{
+					ChangedBy = "Test User",
+					AuthorizedAs = "Test Auth",
 					Fields = new[]
 					{
-						new Field { Name = "Id", OriginalValue = r.Owner.Id, Value = r.Owner.Id},
-						new Field { Name = "Rev", OriginalValue = r.Rev, Value = r.Rev},
-						new Field { Name = "test", OriginalValue = "Orig", Value = "val"},
-						new Field { Name = "testeq", OriginalValue = "eq", Value = "eq"}
+						new Field { Name = "Id", ReferenceName= "System.Id", OriginalValue = r.Owner.Id, Value = r.Owner.Id},
+						new Field { Name = "Rev", ReferenceName= "System.Rev",OriginalValue = r.Rev, Value = r.Rev},
+						new Field { Name = "test", ReferenceName= "System.test", OriginalValue = "Orig", Value = "val"},
+						new Field { Name = "testusr", ReferenceName= "System.testusr", OriginalValue = "Orig", Value = "val", IsChangedByUser = true},
+						new Field { Name = "testeq", ReferenceName= "System.testeq", OriginalValue = "eq", Value = "eq"}
 					},
 					Attachments = new[]
 					{
@@ -70,12 +74,30 @@ namespace YL.Timeline.Shell
 			{
 				MessageBox.Show(this, id.ToString());
 			};
-			var items = GetData(_offset);
+			var items = GetData(_offset, new [] {"State"});
 			DataContext = new DataModel(items);
 		}
 
-		private Item[] GetData(int offset)
+		private Item[] GetData(int offset, string[] displayFields)
 		{
+			var fillDisplayFields = new Action<Record>((r) => { 
+				if (displayFields != null)
+				{
+					var fields = new List<Field>();
+					foreach (var f in displayFields)
+					{
+						fields.Add(new Field
+							{
+								Name = string.Format("{0} {1} [{2}]", f, r.Owner.Id, r.Rev),
+								ReferenceName = string.Format("Ref {0} {1} [{2}]", f, r.Owner.Id, r.Rev),
+								OriginalValue = string.Format("Orig {0}", f),
+								Value = string.Format("Val {0}", f)
+							});
+					}
+					r.DisplayFields = fields.ToArray();
+				}
+			});
+
 			var item4 = new Item { Id = offset + 18, Title = "Test " + (offset + 18) };
 			var linkTrg2 = new Record(item4, _loader) { Rev = 1, Date = DateTime.Now.AddDays(-3), State = "Active" };
 			item4.Records = new[]
@@ -87,7 +109,6 @@ namespace YL.Timeline.Shell
 					new Record(item4, _loader) {Rev = 4, Date = DateTime.Now.AddDays(-1), State = "Resolved", }
 				};
 			
-			var result = new List<Item>();
 			var item = new Item { Id = offset + 5, Title = "Test " + (offset + 5) };
 			var linkSrc2 = new Record(item, _loader)
 			{
@@ -146,7 +167,12 @@ namespace YL.Timeline.Shell
 			}
 			seqItem.Records = seqItemRecords.ToArray();*/
 
-			return new[] { item, item2, item3, item4, item5 };
+			var result = new[] { item, item2, item3, item4, item5 };
+			foreach (var r in result.SelectMany(i => i.Records))
+			{
+				fillDisplayFields(r);
+			}
+			return result;
 		}
 
 		private Record[] CreateRecords(Item item, IEnumerable<Tuple<int, DateTime, string>> records)
@@ -167,7 +193,19 @@ namespace YL.Timeline.Shell
 		private void MenuItem_MouseUp(object sender, System.Windows.RoutedEventArgs e)
 		{
 			var model = (DataModel)DataContext;
-			model.Items = GetData(++_offset);
+			model.Items = GetData(++_offset, model.DisplayFields);
+		}
+
+		private void MenuItem_Click(object sender, RoutedEventArgs e)
+		{
+			var model = (DataModel)DataContext;
+			var service = new DataService();
+			var displayFields = DisplayFieldsForm.ShowAndGetResult(service, model.DisplayFields, this);
+			if (displayFields != null)
+			{
+				model.DisplayFields = displayFields;
+				model.Items = GetData(++_offset, model.DisplayFields);
+			}
 		}
 	}
 }

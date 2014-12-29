@@ -18,9 +18,9 @@ using YL.Timeline.Entities;
 
 namespace YL.Timeline.Controls.Fields
 {
-	public class ControlRevisionsView : ListBox
+	public class ControlRevisionsView : ItemsControl
 	{
-		private readonly Dictionary<Record, ControlRevisionView> _controlsCache = new Dictionary<Record, ControlRevisionView>();
+		//private readonly Dictionary<Record, ControlRevisionView> _controlsCache = new Dictionary<Record, ControlRevisionView>();
 
 		public static readonly DependencyProperty ControllerProperty = ControlTimeLine.ControllerProperty.AddOwner(typeof(ControlRevisionsView));
 
@@ -48,12 +48,25 @@ namespace YL.Timeline.Controls.Fields
 		public ControlRevisionsView()
 		{
 			VerticalContentAlignment = System.Windows.VerticalAlignment.Top;
-			var factory = new FrameworkElementFactory(typeof(WrapPanel));
-			factory.SetValue(WrapPanel.IsItemsHostProperty, true);
-			ItemsPanel = new ItemsPanelTemplate(factory);
+			var stackFactory = new FrameworkElementFactory(typeof(StackPanel));
+			stackFactory.SetValue(StackPanel.OrientationProperty, Orientation.Horizontal);
 
-			//var itemFactory = new FrameworkElementFactory(typeof(ControlRevisionView));
-			//ItemTemplate = new DataTemplate() { VisualTree = itemFactory };
+			var factory = new FrameworkElementFactory(typeof(ScrollViewer));
+			factory.SetValue(ScrollViewer.HorizontalScrollBarVisibilityProperty, ScrollBarVisibility.Visible);
+
+			var ipFactory = new FrameworkElementFactory(typeof(ItemsPresenter));
+			factory.AppendChild(ipFactory);
+
+			var template = new ControlTemplate();
+			template.VisualTree = factory;
+
+			Template = template;
+
+			ItemsPanel = new ItemsPanelTemplate(stackFactory);
+
+
+			var itemFactory = new FrameworkElementFactory(typeof(ControlRevisionView));
+			ItemTemplate = new DataTemplate { VisualTree = itemFactory };
 
 			var menu = new ContextMenu();
 			var onlyChecked = new MenuItem
@@ -63,9 +76,9 @@ namespace YL.Timeline.Controls.Fields
 			};
 			onlyChecked.Command = new DelegateCommand(() =>
 				{
-					foreach (var kvp in _controlsCache)
+					foreach (var v in Helpers.FindVisualChildrens<ControlRevisionView>(this))
 					{
-						kvp.Value.OnlyChanged = onlyChecked.IsChecked;
+						v.OnlyChanged = onlyChecked.IsChecked;
 					}
 				});
 			menu.Items.Add(onlyChecked);
@@ -84,7 +97,7 @@ namespace YL.Timeline.Controls.Fields
 			ContextMenu = menu;
 		}
 
-		protected override void OnItemsChanged(System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+		/*protected override void OnItemsChanged(System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
 			base.OnItemsChanged(e);
 			var hash = new HashSet<Record>(Items.OfType<Record>());
@@ -92,9 +105,9 @@ namespace YL.Timeline.Controls.Fields
 			{
 				_controlsCache.Remove(toRemove.Key);
 			}
-		}
+		}*/
 
-		protected override void PrepareContainerForItemOverride(DependencyObject element, object item)
+		/*protected override void PrepareContainerForItemOverride(DependencyObject element, object item)
 		{
 			var record = item as Record;
 
@@ -111,6 +124,6 @@ namespace YL.Timeline.Controls.Fields
 				_controlsCache.Add(record, instance);
 			}
 			base.PrepareContainerForItemOverride(element, instance);
-		}
+		}*/
 	}
 }

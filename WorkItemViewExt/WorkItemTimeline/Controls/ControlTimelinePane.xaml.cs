@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using YL.Timeline.Forms;
 
 namespace YL.WorkItemViewExt.WorkItemTimeline.Controls
 {
@@ -21,6 +22,26 @@ namespace YL.WorkItemViewExt.WorkItemTimeline.Controls
 		{
 			InitializeComponent();
 			DataContext = model;
+		}
+
+		private void DisplayFieldsClick(object sender, RoutedEventArgs e)
+		{
+			var model = (TimelineModel)DataContext;
+			var displayFields = DisplayFieldsForm.ShowAndGetResult(model.Service, model.DisplayFields, GetOwnerWindow());
+			if (displayFields != null)
+			{
+				model.SetDisplayFields(displayFields);
+			}
+		}
+
+		private Window GetOwnerWindow()
+		{
+			var parent = VisualTreeHelper.GetParent(this);
+			while (!(parent is Window))
+			{
+				parent = VisualTreeHelper.GetParent(parent);
+			}
+			return (Window)parent;
 		}
 	}
 }
