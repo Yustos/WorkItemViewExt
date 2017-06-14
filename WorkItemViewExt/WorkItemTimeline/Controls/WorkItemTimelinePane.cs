@@ -35,14 +35,6 @@ namespace YL.WorkItemViewExt.WorkItemTimeline.Controls
 		{
 			_model.AddWorkItems(workItems);
 			var caption = "Work Item Timeline";
-			/*if (_model.Items.Length == 1)
-			{
-				caption += " " + _model.Items[0].Id;
-			}
-			else
-			{
-				caption += string.Format(" ({0} items)", _model.Items.Length);
-			}*/
 			Caption = caption;
 		}
 	}

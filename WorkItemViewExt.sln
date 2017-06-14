@@ -1,16 +1,16 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkItemViewExt", "WorkItemViewExt\WorkItemViewExt.csproj", "{5BB0B85E-F2D5-48AF-8D7A-85DC18892569}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Timeline", "Timeline\Timeline.csproj", "{22C839CE-2464-461E-B097-3C59A6611421}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D52F9EE2-660E-4B50-B796-3876A128F3AA}"
 	ProjectSection(SolutionItems) = preProject
 		Key.snk = Key.snk
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkItemViewExt", "WorkItemViewExt\WorkItemViewExt.csproj", "{5BB0B85E-F2D5-48AF-8D7A-85DC18892569}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Timeline", "Timeline\Timeline.csproj", "{22C839CE-2464-461E-B097-3C59A6611421}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Timeline.Shell", "Timeline.Shell\Timeline.Shell.csproj", "{906B4DD8-5EBA-48AB-9EFC-3DCDD1E0CF4A}"
 EndProject
@@ -20,8 +20,8 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{5BB0B85E-F2D5-48AF-8D7A-85DC18892569}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5BB0B85E-F2D5-48AF-8D7A-85DC18892569}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5BB0B85E-F2D5-48AF-8D7A-85DC18892569}.Debug|Any CPU.ActiveCfg = DebugVS2015|Any CPU
+		{5BB0B85E-F2D5-48AF-8D7A-85DC18892569}.Debug|Any CPU.Build.0 = DebugVS2015|Any CPU
 		{5BB0B85E-F2D5-48AF-8D7A-85DC18892569}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5BB0B85E-F2D5-48AF-8D7A-85DC18892569}.Release|Any CPU.Build.0 = Release|Any CPU
 		{22C839CE-2464-461E-B097-3C59A6611421}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
