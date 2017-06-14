@@ -119,8 +119,8 @@
   </Commands>
 
 	<Symbols>
-		<GuidSymbol name="guidTimeLapseContextMenuPkg" value="{af4a407a-3486-40c5-975d-9dde883ff0b5}" />
-		<GuidSymbol name="guidTimeLapseContextMenuCmdSet" value="{106d7db2-7b92-442f-92d4-96d229406300}">
+		<GuidSymbol name="guidTimeLapseContextMenuPkg" value="{8f069d8f-506e-461f-a3d6-e2a76e1e1a8f}" />
+		<GuidSymbol name="guidTimeLapseContextMenuCmdSet" value="{68454935-794a-4744-a2ee-20a3b2889a80}">
 			<IDSymbol name="ResultListGroup" value="0x1030" />
 			<IDSymbol name="WorkItemGroup" value="0x1040" />
 			<IDSymbol name="TBWorkItemGroup" value="0x1041" />
@@ -128,10 +128,10 @@
 			<IDSymbol name="cmdidWorkItemCompare" value="0x0202" />
 			<IDSymbol name="cmdidWorkItemTimeline" value="0x0203" />
 		</GuidSymbol>
-		<GuidSymbol name="guidImages" value="{619d558c-1a1b-4516-b710-8ab08731cc5c}">
+		<GuidSymbol name="guidImages" value="{8B8E8F0C-7C2A-4FF0-BC86-640AD70301CE}">
 			<IDSymbol name="bmpPic" value="1" />
 		</GuidSymbol>
-		<GuidSymbol name="guidTimelineImages" value="{8279616A-EFB1-449A-A371-F689D8CFFBFB}">
+		<GuidSymbol name="guidTimelineImages" value="{F5129EA4-2EBB-4EB7-8E9C-F9BA0511FAC8}">
 			<IDSymbol name="bmpTimeline" value="1" />
 		</GuidSymbol>
 	</Symbols>
